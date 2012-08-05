@@ -22,3 +22,7 @@ This returns a list of dice rolls. Numerical operators that are applied to the l
 ``X + Y``, ``X - Y``, ``X * Y``, ``X / Y``
 
 Performs a basic operation on two atoms (each either a diceroll or an integer) - respectively addition, subtraction, multiplication, division.
+
+``DvN``
+
+Drop the ``N`` lowest rolls from diceroll ``D``.

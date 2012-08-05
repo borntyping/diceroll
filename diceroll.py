@@ -13,10 +13,16 @@ from pyparsing import nums, operatorPrecedence, opAssoc, dblSlashComment
 class Dice (list):
 	"""	A list of dicerolls, generated from given parameters """
 	
-	def __init__ (self, n, s):
-		""" Roll a dice with ``s`` faces ``n`` times """
-		for _ in xrange(n):
-			self.append(randint(1, s))
+	def __init__ (self, *args):
+		"""
+		Given 2 arguments: Roll a dice with ``s`` faces ``n`` times
+		Given 1 argument: Construct a Dice object from the given iterable
+		"""
+		if len(args) == 2:
+			for _ in xrange(args[1]):
+				self.append(randint(1, args[0]))
+		elif len(args) == 1:
+			super(Dice, self).__init__(args[0])
 	
 	#: Represent a list of dice rolls in the form ``a, b, c, ...``
 	def __str__ (self):  return ', '.join([str(r) for r in self])
@@ -28,10 +34,12 @@ class Dice (list):
 	def __int__ (self): return sum(self)
 	
 	#  Operators
-	def __add__ (self, other): return int(self) + int(other)
-	def __sub__ (self, other): return int(self) - int(other)
-	def __mul__ (self, other): return int(self) * int(other)
-	def __div__ (self, other): return int(self) / int(other)
+	def __add__ (self, other):	return int(self) + int(other)
+	def __sub__ (self, other):	return int(self) - int(other)
+	def __mul__ (self, other):	return int(self) * int(other)
+	def __div__ (self, other):	return int(self) / int(other)
+	
+	def drop (self, num):		return [Dice(sorted(self)[num:])]
 
 class Components (object):
 	""" The components that make up a diceroll expression """
@@ -64,6 +72,7 @@ class Components (object):
 		('-', Operation(lambda x, y: x - y)),
 		('*', Operation(lambda x, y: x * y)),
 		('/', Operation(lambda x, y: x / y)),
+		('v', Operation(lambda x, y: x.drop(y))),
 	)])
 
 	# Comments
