@@ -1,0 +1,26 @@
+bones
+=====
+
+``bones`` is a simple command line dice roller.
+
+It can alternatively be invoked through the command ``roll``.
+
+Requirements
+------------
+
+Requires the `pyparsing <http://pypi.python.org/pypi/pyparsing/>`_ library.
+
+Syntax
+------
+
+NdS
+^^^
+
+``[N]dS`` A set of dice to roll, where ``N`` (optional, defaults to 1) is the number of dice to roll, and ``S`` is the number of sides the dice has.
+
+This returns a list of dice rolls. Numerical operators that are applied to the list (such as ``+``, ``-``, etc) will use the sum total of the dice rolls.
+
++ -
+^^^
+
+``X + Y``, ``X - Y`` Adds or subtracts two atoms (either a diceroll or an integer) from each other.
