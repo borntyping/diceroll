@@ -15,8 +15,9 @@ setup(
     long_description = open('README.rst').read(),
     
     packages         = find_packages(),
+    install_requires = ['pyparsing>=1.5.6'],
     
     entry_points = {'console_scripts': [
-		'roll  = diceroll:cli [pyparsing]',
+		'roll  = diceroll:cli',
 	]},
 )
