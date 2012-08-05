@@ -14,10 +14,11 @@ def catch (function):
 	"""	As pyparsing often refuses to raise an exception """
 	def safe_function (*args, **kwargs):
 		try:
-			function(*args, **kwargs)
-		except Exception, e:
-			print "{e.__class__.__name__}: {e}".format(e=e)
-			exit()
+			return function(*args, **kwargs)
+		except Exception:
+			#print "{e.__class__.__name__}: {e}".format(e=e)
+			from traceback import print_exc; print_exc(); exit()
+	safe_function.__name__ = function.__name__
 	return safe_function
 
 class Dice (list):
@@ -69,39 +70,42 @@ class Components (object):
 	
 	def DiceOnly (operator):
 		@catch
-		def dice_only_operator (tokens):
+		def dice_only_operator (string, location, tokens):
 			if not isinstance(tokens[0][0], Dice):
 				raise NotImplementedError, "Operator {} can only be used on Dice objects".format(tokens[0][1])
-			else:
-				return operator(tokens)
+			return operator(tokens)
 		return dice_only_operator
 	
 	def Operation (operator, recursive=True):
-		"""	Decorator. Deals with handling the same operation multiple times, and makes it a little easier to write new operators. """
+		"""
+		Decorator, to simplify ``X `op` Y`` style operators.
+		
+		Deals with handling the same operation multiple times (unless `recursive=False`),
+		and makes it a little easier to write new operators.
+		"""
 		if recursive:
 			def recursive_wrapped_operator (tokens):
 				# Extract the value to edit from the tokens,
 				# and the list of values to call the operator with
-				try:
-					x, operations = tokens[0][0], tokens[0][2:]
-					while operations:
-						y = operations.pop(0)
-						x = operator(x, y)
-					return x
-				except Exception, e:
-					import traceback
-					print traceback.format_exc(e)
+				x, operations = tokens[0][0], tokens[0][2:]
+				while operations:
+					y = operations.pop(0)
+					x = operator(x, y)
+				return x
 			return recursive_wrapped_operator
 		else:
 			def wrapped_operator(tokens):
 				return operator(tokens[0][0], tokens[0][2])
 			return wrapped_operator
-
+	
 	#: The operations to add to the operatorPrecedence syntax
 	operators = [
 		# Dice only operators
-		('v', 'drop',	DiceOnly(Operation(lambda d, n: d.drop(n), recursive=false))),
-		('^', 'keep',	DiceOnly(Operation(lambda d, n: d.keep(n), recursive=false))),
+		('v', 'drop',	DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
+		('^', 'keep',	DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
+		
+		# Single term operators
+		('t', 'total',	DiceOnly(lambda t: int(t[0][0])), 1),
 		
 		# General operators
 		('~', 'diff',	Operation(lambda x, y: int(x) - int(y))),
@@ -114,9 +118,13 @@ class Components (object):
 	# Generate operators
 	operator_list = list()
 	for op in operators:
+		function    = op[2]
+		terms       = op[3] if op[3:] else 2
+		association = op[4] if op[4:] else opAssoc.LEFT
 		for n in (0, 1):
 			if op[n]:
-				operator_list.append((Literal(op[n]), 2, opAssoc.LEFT, op[2]))
+				operator = Literal(op[n]), terms, association, function
+				operator_list.append(operator)
 	
 	operators = operatorPrecedence(dice | number, operator_list)
 

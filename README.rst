@@ -34,3 +34,7 @@ Similar to drop, keeps the ``N`` highest rolls from ``D``.
 ``X~Y``, ``XdiffY``
 
 Returns the difference between ``X`` and ``Y``.
+
+``Dt``, ``Dtotal``
+
+Returns the sum total of diceroll ``D``.
