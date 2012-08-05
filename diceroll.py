@@ -1,90 +1,76 @@
 #!/usr/bin/python
 
-__version__ = 0.2
+#: This is the version number
+__version__ = 0.3
+
+#: Define __all__ so that ``from diceroll import *`` only imports useful items
+__all__ = ['Dice', 'Components', 'expression', 'roll', 'cli']
 
 from random import randint
-
-from pyparsing import *
-
-def catch (func):
-	"""
-	Becuase sometimes, pyparsing is a bitch.
-	Use this when it decides to eat your TypeErrors.
-	"""
-	def catch (*a, **k):
-		try:
-			func(*a, **k)
-		except:
-			print traceback.format_exc()
-	return catch
+from pyparsing import Word, Optional, CaselessLiteral, Literal
+from pyparsing import nums, operatorPrecedence, opAssoc, dblSlashComment
 
 class Dice (list):
-	"""	A random list of dicerolls """
+	"""	A list of dicerolls, generated from given parameters """
 	
 	def __init__ (self, n, s):
 		""" Roll a dice with ``s`` faces ``n`` times """
 		for _ in xrange(n):
 			self.append(randint(1, s))
 	
-	# Formatting
+	#: Represent a list of dice rolls in the form ``a, b, c, ...``
+	def __str__ (self):  return ', '.join([str(r) for r in self])
 	
-	def __str__ (self):
-		"""	Represent a list of dice rolls in the form ``{a, b, c, ... (total)}`` """
-		return ', '.join([str(r) for r in self])
+	#: Represent a list of dice rolls in the form ``{a, b, c, ...}``
+	def __repr__ (self): return "{" + self.__str__() + "}"
 	
-	def __repr__ (self):
-		"""	Represent a list of dice rolls in the form ``{a, b, c, ...}`` """
-		return "{" + self.__str__() + "}"
+	#: Convert the dicerolls to an integer, by returning the sum total
+	def __int__ (self): return sum(self)
 	
-	# Operators
-	
-	def __int__ (self):
-		"""
-		Convert the dicerolls to an integer,
-		by returning the sum total of the rolls.
-		"""
-		return sum(self)
-	
+	#  Operators
 	def __add__ (self, other): return int(self) + int(other)
 	def __sub__ (self, other): return int(self) - int(other)
 	def __mul__ (self, other): return int(self) * int(other)
 	def __div__ (self, other): return int(self) / int(other)
 
-# Parse numbers into integer values
-number = Word(nums)
-number.setParseAction(lambda tokens: int(tokens[0]))
-number.setName("number")
+class Components (object):
+	""" The components that make up a diceroll expression """
+	
+	# Parse numbers into integer values
+	number = Word(nums)
+	number.setParseAction(lambda tokens: int(tokens[0]))
+	number.setName("number")
 
-# Parse dice into a list of rolls
-dice = Optional(number, default=1) + CaselessLiteral("d").suppress() + number
-dice.setParseAction(lambda tokens: [Dice(tokens[0], tokens[1])])
+	# Parse dice into a list of rolls
+	dice = Optional(number, default=1) + CaselessLiteral("d").suppress() + number
+	dice.setParseAction(lambda tokens: [Dice(tokens[0], tokens[1])])
 
-# Operators
-def Operation (operator):
-	"""	Decorator. Deals with handling the same operation multiple times, and makes it a little easier to write new operators. """
-	def wrapped_operator (tokens):
-		# Extract the value to edit from the tokens,
-		# and the list of values to call the operator with
-		x, operations = tokens[0][0], tokens[0][1:]
-		while operations:
-			y = operations.pop(0)
-			x = operator(x, y)
-		return x
-	return wrapped_operator
+	# Create the individual operators
+	def Operation (operator):
+		"""	Decorator. Deals with handling the same operation multiple times, and makes it a little easier to write new operators. """
+		def wrapped_operator (tokens):
+			# Extract the value to edit from the tokens,
+			# and the list of values to call the operator with
+			x, operations = tokens[0][0], tokens[0][1:]
+			while operations:
+				y = operations.pop(0)
+				x = operator(x, y)
+			return x
+		return wrapped_operator
 
-op = lambda s, f: (Literal(s).suppress(), 2, opAssoc.LEFT, f)
-operators = operatorPrecedence(dice | number, [op(*x) for x in (
-	('+', Operation(lambda x, y: x.__add__(y))),
-	('-', Operation(lambda x, y: x - y)),
-	('*', Operation(lambda x, y: x * y)),
-	('/', Operation(lambda x, y: x / y)),
-)])
+	op = lambda s, f: (Literal(s).suppress(), 2, opAssoc.LEFT, f)
+	operators = operatorPrecedence(dice | number, [op(*x) for x in (
+		('+', Operation(lambda x, y: x.__add__(y))),
+		('-', Operation(lambda x, y: x - y)),
+		('*', Operation(lambda x, y: x * y)),
+		('/', Operation(lambda x, y: x / y)),
+	)])
 
-# Comments
-comment = Optional(dblSlashComment).suppress()
+	# Comments
+	comment = Optional(dblSlashComment).suppress()
 
-# The final expression
-expression = operators + comment
+#: The final diceroll expression
+expression = Components.operators + Components.comment
 
 def roll (expr):
 	""" Roll ``expr`` """
