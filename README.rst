@@ -19,6 +19,6 @@ A set of dice to roll, where ``N`` (optional, defaults to 1) is the number of di
 
 This returns a list of dice rolls. Numerical operators that are applied to the list (such as ``+``, ``-``, etc) will use the sum total of the dice rolls.
 
-``X + Y``, ``X - Y``
+``X + Y``, ``X - Y``, ``X * Y``, ``X / Y``
 
-Adds or subtracts two atoms (either a diceroll or an integer) from each other.
+Performs a basic operation on two atoms (each either a diceroll or an integer) - respectively addition, subtraction, multiplication, division.

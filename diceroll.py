@@ -47,6 +47,8 @@ class Dice (list):
 	
 	def __add__ (self, other): return int(self) + int(other)
 	def __sub__ (self, other): return int(self) - int(other)
+	def __mul__ (self, other): return int(self) * int(other)
+	def __div__ (self, other): return int(self) / int(other)
 
 # Parse numbers into integer values
 number = Word(nums)
@@ -74,6 +76,8 @@ op = lambda s, f: (Literal(s).suppress(), 2, opAssoc.LEFT, f)
 operators = operatorPrecedence(dice | number, [op(*x) for x in (
 	('+', Operation(lambda x, y: x.__add__(y))),
 	('-', Operation(lambda x, y: x - y)),
+	('*', Operation(lambda x, y: x * y)),
+	('/', Operation(lambda x, y: x / y)),
 )])
 
 # Comments
