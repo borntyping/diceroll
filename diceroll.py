@@ -90,7 +90,7 @@ def roll (expr):
 	""" Roll ``expr`` """
 	return expression.parseString(expr)[0]
 
-def bones ():
+def cli ():
 	""" Command line entry point """
 	import sys, argparse
 	parser = argparse.ArgumentParser(
@@ -103,4 +103,4 @@ def bones ():
 	
 	print roll(args.expression)
 
-if __name__ == '__main__': bones()
+if __name__ == '__main__': cli()

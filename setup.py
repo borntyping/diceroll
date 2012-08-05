@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
 from setuptools import setup, find_packages
-from bones import __version__
+from diceroll import __version__
 
 setup(
-    name             = 'bones',
+    name             = 'diceroll',
     version          = __version__,
 
     author           = 'Sam Clements',
     author_email     = 'sam@borntyping.co.uk',
-    url              = 'https://github.com/borntyping/bones',
+    url              = 'https://github.com/borntyping/diceroll',
     
     description      = 'A command line dice roller',
     long_description = open('README.rst').read(),
@@ -17,6 +17,6 @@ setup(
     packages         = find_packages(),
     
     entry_points = {'console_scripts': [
-		'roll  = bones:bones [pyparsing]',
+		'roll  = diceroll:cli [pyparsing]',
 	]},
 )
