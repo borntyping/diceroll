@@ -23,10 +23,14 @@ This returns a list of dice rolls. Numerical operators that are applied to the l
 
 Performs a basic operation on two atoms (each either a diceroll or an integer) - respectively addition, subtraction, multiplication, division.
 
-``DvN``
+``DvN``, ``DdropN``
 
 Drop the ``N`` lowest rolls from diceroll ``D``.
 
-``D^N``
+``D^N``, ``DkeepN``
 
 Similar to drop, keeps the ``N`` highest rolls from ``D``.
+
+``X~Y``, ``XdiffY``
+
+Returns the difference between ``X`` and ``Y``.
