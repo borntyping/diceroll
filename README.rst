@@ -26,3 +26,7 @@ Performs a basic operation on two atoms (each either a diceroll or an integer) -
 ``DvN``
 
 Drop the ``N`` lowest rolls from diceroll ``D``.
+
+``D^N``
+
+Similar to drop, keeps the ``N`` highest rolls from ``D``.

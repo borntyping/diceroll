@@ -40,6 +40,7 @@ class Dice (list):
 	def __div__ (self, other):	return int(self) / int(other)
 	
 	def drop (self, num):		return [Dice(sorted(self)[num:])]
+	def keep (self, num):		return [Dice(sorted(self)[:num:-1])]
 
 class Components (object):
 	""" The components that make up a diceroll expression """
@@ -73,6 +74,7 @@ class Components (object):
 		('*', Operation(lambda x, y: x * y)),
 		('/', Operation(lambda x, y: x / y)),
 		('v', Operation(lambda x, y: x.drop(y))),
+		('^', Operation(lambda x, y: x.keep(y))),
 	)])
 
 	# Comments
