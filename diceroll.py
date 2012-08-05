@@ -28,16 +28,13 @@ class Dice (list):
 	
 	# Formatting
 	
-	def _str_list (self):
-		return ', '.join([str(r) for r in self])
-	
 	def __str__ (self):
 		"""	Represent a list of dice rolls in the form ``{a, b, c, ... (total)}`` """
-		return "{{{} ({})}}".format(self._str_list(), int(self))
+		return ', '.join([str(r) for r in self])
 	
 	def __repr__ (self):
-		"""	Represent a list of dice rolls in the form ``{a, b, c, ... (total)}`` """
-		return "{" + self._str_list() + "}"
+		"""	Represent a list of dice rolls in the form ``{a, b, c, ...}`` """
+		return "{" + self.__str__() + "}"
 	
 	# Operators
 	
@@ -69,7 +66,6 @@ def Operation (operator):
 		x, operations = tokens[0][0], tokens[0][1:]
 		while operations:
 			y = operations.pop(0)
-			print x, operator(x, y)
 			x = operator(x, y)
 		return x
 	return wrapped_operator
