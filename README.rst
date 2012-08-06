@@ -38,3 +38,30 @@ Returns the difference between ``X`` and ``Y``.
 ``Dt``, ``Dtotal``
 
 Returns the sum total of diceroll ``D``.
+
+``D*``, ``Dexplode``
+
+Rolls an extra die for every diceroll that hits the maximum.
+
+Future syntax
+-------------
+
+``DsuccessN``
+
+Return the count of dice in ``D`` that land equal to or higher than ``N``.
+
+``[D]successC[N]``
+
+As above, but removes a success every time a die hits the minimum.
+
+``[D]successB[N]``
+
+As ``success``, but adds a success every time a die lands on the maximum.
+
+``DrerollN``
+
+Reroll any dice in ``D`` that are equal to or lower than ``N``.
+
+``[D]o``, ``Dsort``
+
+Sorts the rolls from lowest to highest.

@@ -22,19 +22,24 @@ def catch (function):
 	return safe_function
 
 class Dice (list):
-	"""	A list of dicerolls, generated from given parameters """
+	"""
+	A list of dicerolls, generated from given parameters
 	
-	def __init__ (self, *args):
+	Note:	if returning it to pyparsing, place it in a list,
+			otherwise pyparsing will assume it's a list of tokens.
+	"""
+	
+	@classmethod
+	def roll (cls, n, sides):
+		""" Create a Dice object, with ``n`` rolls """
+		return cls(sides, [randint(1, sides) for _ in xrange(n)])
+	
+	def __init__ (self, sides, iterable=()):
 		"""
-		Given 2 arguments: Roll a dice with ``s`` faces ``n`` times
-		Given 1 argument: Construct a Dice object from the given iterable
+		Create a set of dice, with ``sides`` sides.
 		"""
-		if len(args) == 2:
-			num, sides = args
-			for _ in xrange(num):
-				self.append(randint(1, sides))
-		elif len(args) == 1:
-			super(Dice, self).__init__(args[0])
+		self.sides = sides
+		super(Dice, self).__init__(iterable)
 	
 	#: Represent a list of dice rolls in the form ``a, b, c, ...``
 	def __str__ (self):  return ', '.join([str(r) for r in self])
@@ -51,8 +56,28 @@ class Dice (list):
 	def __mul__ (self, other):	return int(self) * int(other)
 	def __div__ (self, other):	return int(self) / int(other)
 	
-	def drop (self, num):		return [Dice(sorted(self)[num:])]
-	def keep (self, num):		return [Dice(sorted(self)[:num:-1])]
+	def drop (self, num):		return [Dice(self.sides, sorted(self)[num:])]
+	def keep (self, num):		return [Dice(self.sides, sorted(self)[:num:-1])]
+	
+	@catch
+	def explode (self, n=None, recursive=True, limit=10):
+		"""	Roll an extra die for each die >= ``n`` """
+		n = n or self.sides
+		# The dice to return
+		dice = Dice(self.sides, self)
+		# The list of rolls to check for exploding dice
+		new = list(self)
+		# Recursively check ``new`` for exploding dice,
+		# until ``limit`` reaches 0
+		while limit > 0:
+			new = [randint(1, dice.sides) for die in new if die >= n]
+			# Return the dice if there are no new dice to try
+			# and explode, or recursive checking is disabled.
+			if len(new) == 0 or recursive == False:
+				return [dice]
+			dice.extend(new)
+			limit = limit - 1
+		raise Exception, "Too many dice exploded"
 
 class Components (object):
 	""" The components that make up a diceroll expression """
@@ -64,7 +89,7 @@ class Components (object):
 
 	# Parse dice into a list of rolls
 	dice = Optional(number, default=1) + CaselessLiteral("d").suppress() + number
-	dice.setParseAction(lambda tokens: [Dice(tokens[0], tokens[1])])
+	dice.setParseAction(lambda tokens: [Dice.roll(tokens[0], tokens[1])])
 
 	# Create the individual operators
 	
@@ -95,36 +120,37 @@ class Components (object):
 			return recursive_wrapped_operator
 		else:
 			def wrapped_operator(tokens):
-				return operator(tokens[0][0], tokens[0][2])
+				x, op, y = tokens
+				return operator(x, y)
 			return wrapped_operator
 	
 	#: The operations to add to the operatorPrecedence syntax
 	operators = [
 		# Dice only operators
-		('v', 'drop',	DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
-		('^', 'keep',	DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
-		
-		# Single term operators
-		('t', 'total',	DiceOnly(lambda t: int(t[0][0])), 1),
+		(['v', 'drop'], DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
+		(['^', 'keep'], DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
 		
 		# General operators
-		('~', 'diff',	Operation(lambda x, y: int(x) - int(y))),
-		('+', None,		Operation(lambda x, y: x + y)),
-		('-', None,		Operation(lambda x, y: x - y)),
-		('*', None,		Operation(lambda x, y: x * y)),
-		('/', None,		Operation(lambda x, y: x / y)),
+		(['~', 'diff'],	Operation(lambda x, y: int(x) - int(y))),
+		(['+'], Operation(lambda x, y: x + y)),
+		(['-'], Operation(lambda x, y: x - y)),
+		(['*'], Operation(lambda x, y: x * y)),
+		(['/'], Operation(lambda x, y: x / y)),
+		
+		# Single term operators
+		(['t', 'total'], DiceOnly(lambda t: int(t[0][0])), 1),
+		(['*', 'explode'], DiceOnly(lambda t: t[0][0].explode()), 1),
 	]
 	
 	# Generate operators
 	operator_list = list()
 	for op in operators:
-		function    = op[2]
-		terms       = op[3] if op[3:] else 2
-		association = op[4] if op[4:] else opAssoc.LEFT
-		for n in (0, 1):
-			if op[n]:
-				operator = Literal(op[n]), terms, association, function
-				operator_list.append(operator)
+		function    = op[1]
+		terms       = op[2] if op[2:] else 2
+		association = op[3] if op[3:] else opAssoc.LEFT
+		for n in op[0]:
+			operator = (Literal(n), terms, association, function)
+			operator_list.append(operator)
 	
 	operators = operatorPrecedence(dice | number, operator_list)
 
