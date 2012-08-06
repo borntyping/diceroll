@@ -6,12 +6,17 @@ diceroll
 It can be invoked through the ``roll`` command once installed.
 
 Requirements
-------------
+************
 
 Requires the `pyparsing <http://pypi.python.org/pypi/pyparsing/>`_ library.
 
 Syntax
-------
+******
+
+The expression syntax is made up of numbers, dice, and operators.
+
+Dice
+----
 
 ``<N>d<S>``
 
@@ -20,7 +25,7 @@ A set of dice to roll, where ``N`` (optional, defaults to 1) is the number of di
 This returns a list of dice rolls. Numerical operators that are applied to the list (such as ``+``, ``-``, etc) will use the sum total of the dice rolls.
 
 Dice only operators
-*******************
+-------------------
 
 These operators can be used on dice objects, and are listed in order of priority. Some do not return a Dice object, and should not be used before operators that do.
 
@@ -32,29 +37,50 @@ Dice operators which take ``Y`` (such as ``drop`` and ``keep``) may not be follo
 	roll "(5d6^3)explode"
 	6, 5, 5, 1
 
+Explode
+^^^^^^^
+	
 ``<X>*``, ``<X>explode``
 
 Rolls an extra die for every diceroll that hits the maximum.
+
+Total
+^^^^^
 
 ``<X>t``, ``<X>total``
 
 Returns the sum total of diceroll ``X`` (as an integer value).
 
+Sort
+^^^^
+
 ``<X>o``, ``<X>sort``
 
 Sorts the rolls from lowest to highest.
+
+Success
+^^^^^^^
 
 ``<D>success[C][B]<N>``
 
 Return the count of dice in ``D`` that land equal to or higher than ``N``. ``C`` and ``B`` are optional flags: ``C`` removes a success every time a die hits the minimum and ``B`` adds a success every time a die lands on the maximum.
 
+Drop
+^^^^
+
 ``<X>v<Y>``, ``<X>drop<Y>``
 
 Drop the ``Y`` lowest rolls from diceroll ``X``. 
 
+Keep
+^^^^
+
 ``<X>^<Y>``, ``<X>keep<Y>``
 
 Similar to drop, keeps the ``Y`` highest rolls from ``X``.
+
+Reroll
+^^^^^^
 
 ``<D>rreroll<N>``, ``<D>rr<N>``
 ``<D>reroll<N>``, ``<D>r<N>``
@@ -62,14 +88,20 @@ Similar to drop, keeps the ``Y`` highest rolls from ``X``.
 Reroll any dice in ``D`` that are equal to or lower than ``N``. ``rreroll`` does so recursively (i.e. any rerolled dice equal to or lower than ``N`` are also rerolled), ``reroll`` does not.
 
 Other operators
-***************
+---------------
 
 These operators can be used on any two atoms (each either a diceroll or an integer) ``X`` and ``Y``.
+
+Diff
+^^^^
 
 ``X~<Y>``, ``Xdiff<Y>``
 
 Returns the difference between ``X`` and ``Y``.
 
+Basic operators
+^^^^^^^^^^^^^^^
+
 ``<X> * <Y>``, ``<X> / <Y>``, ``<X> + <Y>``, ``<X> - <Y>``
 
-Performs a basic operation on two atoms  - respectively multiplication, division, addition, subtraction.
+Performs a basic operation on two atoms - respectively multiplication, division, addition, subtraction. Dice are first converted to integers, by calculating the sum total of the rolls.
