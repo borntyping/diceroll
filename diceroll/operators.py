@@ -93,11 +93,15 @@ class SuccessOperator (DiceOperator):
 operator_list = [
 	# Dice only operators
 	SuccessOperator(['success']),
-	DiceOperator(['*', 'explode'],	lambda d: d.explode()),
-	DiceOperator(['t', 'total'  ],	lambda d: int(d)),
-	DiceOperator(['s', 'sort'   ],	lambda d: d.sort()),
-	DiceXYOperator(['v', 'drop'],	lambda x,y: x.drop(y)),
-	DiceXYOperator(['^', 'keep'],	lambda x,y: x.keep(y)),
+	
+	DiceOperator(['*', 'explode'],		lambda x: x.explode()),
+	DiceOperator(['s', 'sort'   ],		lambda x: x.sort()),
+	DiceOperator(['t', 'total'  ],		lambda x: int(x)),
+	
+	DiceXYOperator(['v', 'drop'],		lambda x,y: x.drop(y)),
+	DiceXYOperator(['^', 'keep'],		lambda x,y: x.keep(y)),
+	DiceXYOperator(['rr', 'rreroll'],	lambda x,y: x.rreroll(y)),
+	DiceXYOperator(['r', 'reroll'],		lambda x,y: x.reroll(y)),
 	
 	# General operators
 	XYOperator(['~', 'diff'], lambda x,y: int(x) - int(y)),

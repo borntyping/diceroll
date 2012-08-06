@@ -25,15 +25,17 @@ class Dice (list):
 		"""
 		self.sides = sides
 		super(Dice, self).__init__(iterable)
+		
+	def rand (self):			return rand(self.sides)
 	
 	#: Represent a list of dice rolls in the form ``a, b, c, ...``
-	def __str__ (self):  return ', '.join([str(r) for r in self])
+	def __str__ (self):			return ', '.join([str(r) for r in self])
 	
 	#: Represent a list of dice rolls in the form ``{a, b, c, ...}``
-	def __repr__ (self): return "{" + self.__str__() + "}"
+	def __repr__ (self):		return "{" + self.__str__() + "}"
 	
 	#: Convert the dicerolls to an integer, by returning the sum total
-	def __int__ (self): return sum(self)
+	def __int__ (self): 		return sum(self)
 	
 	#  Operators
 	def __add__ (self, other):	return int(self) + int(other)
@@ -43,6 +45,17 @@ class Dice (list):
 	
 	def drop (self, num):		return [Dice(self.sides, sorted(self)[num:])]
 	def keep (self, num):		return [Dice(self.sides, sorted(self)[::-1][:num])]
+	
+	def reroll (self, limit):
+		"""	Reroll all dice below ``limit`` """
+		return [Dice(self.sides, [(self.rand() if d <= limit else d) for d in self])]
+	
+	def rreroll (self, limit):
+		"""	Recursively reroll dice """
+		dice = Dice(self.sides, self)
+		while len(filter(lambda d: d <= limit, dice)) > 0:
+			dice = dice.reroll(limit)[0]
+		return [dice]
 	
 	def sort (self):
 		super(Dice, self).sort()

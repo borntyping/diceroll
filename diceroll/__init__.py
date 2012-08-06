@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-__version__ = 0.4
+__version__ = 0.5
 __all__     = ['expression', 'roll']
 
 from grammar import expression

@@ -56,6 +56,10 @@ Drop the ``Y`` lowest rolls from diceroll ``X``.
 
 Similar to drop, keeps the ``Y`` highest rolls from ``X``.
 
+``<D>rreroll<N>``, ``<D>rr<N>``
+``<D>reroll<N>``, ``<D>r<N>``
+
+Reroll any dice in ``D`` that are equal to or lower than ``N``. ``rreroll`` does so recursively (i.e. any rerolled dice equal to or lower than ``N`` are also rerolled), ``reroll`` does not.
 
 Other operators
 ***************
@@ -69,11 +73,3 @@ Returns the difference between ``X`` and ``Y``.
 ``<X> * <Y>``, ``<X> / <Y>``, ``<X> + <Y>``, ``<X> - <Y>``
 
 Performs a basic operation on two atoms  - respectively multiplication, division, addition, subtraction.
-
-Future syntax
--------------
-
-``<D>reroll<N>``
-
-Reroll any dice in ``D`` that are equal to or lower than ``N``.
-
