@@ -141,9 +141,9 @@ class Components (object):
 	#: The operations to add to the operatorPrecedence syntax
 	operators = [
 		# Dice only operators
-		(['*', 'explode'], DiceOnly(lambda t: t[0][0].explode()), 1),
 		(['v', 'drop'],    DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
 		(['^', 'keep'],    DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
+		(['*', 'explode'], DiceOnly(lambda t: t[0][0].explode()), 1),
 		(['t', 'total'],   DiceOnly(lambda t: int(t[0][0])), 1),
 		(['o', 'sort'],    DiceOnly(lambda t: t[0][0].sort()), 1),
 		
