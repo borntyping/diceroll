@@ -1,6 +1,6 @@
 """	Generates the set of operators to use in the grammar """
 
-from pyparsing import opAssoc, Literal
+from pyparsing import opAssoc, Literal, Optional, OnlyOnce
 
 from dice import Dice
 
@@ -20,7 +20,6 @@ class Operator (object):
 		self.function    = function
 		self.terms       = kwargs.get('terms', self.default_terms)
 		self.association = kwargs.get('association', opAssoc.LEFT)
-		self.repeatable  = kwargs.get('r', False)
 		
 		# Add each syntax, surrounding strings in Literal()
 		for s in expressions:
@@ -42,6 +41,10 @@ class DiceOperator (Operator):
 	
 class XYOperator (Operator):
 	"""	An operator that acts on two atoms, ``X`` and ``Y`` """
+	def __init__ (self, *args, **kwargs):
+		super(XYOperator, self).__init__(*args, **kwargs)
+		self.repeatable  = kwargs.get('r', False)
+	
 	def __call__ (self, tokens):
 		"""
 		Calls the function with ``X`` and ``Y``,
@@ -64,14 +67,35 @@ class XYOperator (Operator):
 class DiceXYOperator (XYOperator):
 	"""	Wraps the XPOperator.__call__() method in an only_dice decorator """
 	__call__ = only_dice(XYOperator.__call__)
+
+class SuccessOperator (DiceOperator):
+	default_terms = 2
+	flags = Optional(Literal('C')) + Optional(Literal('B'))
+	
+	def __init__ (self, names, *args, **kwargs):
+		expressions = [Literal(n) + self.flags for n in names]
+		super(SuccessOperator, self).__init__(expressions, None, *args, **kwargs)
+		
+	@only_dice
+	def __call__ (self, tokens):
+		dice, op, flags, y = tokens[0][0], tokens[0][1], tokens[0][2:-1], tokens[0][-1]
+		result = len(filter(lambda d: d >= y, dice))
+		
+		if ('C' in flags):
+			result -= len(filter(lambda d: d == 1, dice))
+		
+		if ('B' in flags):
+			result += len(filter(lambda d: d >= dice.sides, dice))
+		
+		return result
 			
 #: The operations to add to the operatorPrecedence syntax
 operator_list = [
 	# Dice only operators
+	SuccessOperator(['success']),
 	DiceOperator(['*', 'explode'],	lambda d: d.explode()),
 	DiceOperator(['t', 'total'  ],	lambda d: int(d)),
 	DiceOperator(['s', 'sort'   ],	lambda d: d.sort()),
-	
 	DiceXYOperator(['v', 'drop'],	lambda x,y: x.drop(y)),
 	DiceXYOperator(['^', 'keep'],	lambda x,y: x.keep(y)),
 	
@@ -88,4 +112,4 @@ operators = list()
 for op in operator_list:
 	for expr in op.expressions:
 		# (opExpr, numTerms, rightLeftAssoc, parseAction)
-		operators.append((expr, op.terms, op.association, op))
+		operators.append((expr, op.terms, op.association, OnlyOnce(op)))
