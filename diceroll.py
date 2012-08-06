@@ -7,8 +7,14 @@ __version__ = 0.3
 __all__ = ['Dice', 'Components', 'expression', 'roll', 'cli']
 
 from random import randint
-from pyparsing import Word, Optional, CaselessLiteral, Literal
+
+from pyparsing import Word, Optional, CaselessLiteral, Literal, OnlyOnce
 from pyparsing import nums, operatorPrecedence, opAssoc, dblSlashComment
+
+# Enable pyarsings packrat mode, seems to provide a massive speed increase.
+# http://pyparsing-public.wikispaces.com/FAQs#Frequently%20Asked%20Questions-What%20the%20heck%20is%20%22packrat%20parsing%22?
+from pyparsing import ParserElement
+ParserElement.enablePackrat()
 
 def catch (function):
 	"""	As pyparsing often refuses to raise an exception """
@@ -149,7 +155,7 @@ class Components (object):
 		terms       = op[2] if op[2:] else 2
 		association = op[3] if op[3:] else opAssoc.LEFT
 		for n in op[0]:
-			operator = (Literal(n), terms, association, function)
+			operator = (Literal(n), terms, association, OnlyOnce(function))
 			operator_list.append(operator)
 	
 	operators = operatorPrecedence(dice | number, operator_list)
@@ -171,10 +177,15 @@ def cli ():
 		description="Return the results of a dice expression")
 	
 	parser.add_argument('--version', action='version', version='bones v%s' % __version__)
+	parser.add_argument('--profile', action='store_true', help='run using the cProfile profiler')
 	parser.add_argument('expression', type=str, help='the expression to roll')
 	
 	args = parser.parse_args()
 	
-	print roll(args.expression)
+	if args.profile:
+		import cProfile
+		cProfile.runctx('print roll(args.expression)', globals(), locals())
+	else:
+		print roll(args.expression)
 
 if __name__ == '__main__': cli()
