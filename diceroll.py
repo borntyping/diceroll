@@ -10,6 +10,7 @@ from random import randint
 
 from pyparsing import Word, Optional, CaselessLiteral, Literal, OnlyOnce
 from pyparsing import nums, operatorPrecedence, opAssoc, dblSlashComment
+from pyparsing import StringStart, StringEnd
 
 # Enable pyarsings packrat mode, seems to provide a massive speed increase.
 # http://pyparsing-public.wikispaces.com/FAQs#Frequently%20Asked%20Questions-What%20the%20heck%20is%20%22packrat%20parsing%22?
@@ -27,6 +28,9 @@ def catch (function):
 	safe_function.__name__ = function.__name__
 	return safe_function
 
+#: Return a random number between 1 and ``s``
+def rand (s): return randint(1, s)
+
 class Dice (list):
 	"""
 	A list of dicerolls, generated from given parameters
@@ -38,7 +42,7 @@ class Dice (list):
 	@classmethod
 	def roll (cls, n, sides):
 		""" Create a Dice object, with ``n`` rolls """
-		return cls(sides, [randint(1, sides) for _ in xrange(n)])
+		return cls(sides, [rand(sides) for _ in xrange(n)])
 	
 	def __init__ (self, sides, iterable=()):
 		"""
@@ -63,7 +67,11 @@ class Dice (list):
 	def __div__ (self, other):	return int(self) / int(other)
 	
 	def drop (self, num):		return [Dice(self.sides, sorted(self)[num:])]
-	def keep (self, num):		return [Dice(self.sides, sorted(self)[:num:-1])]
+	def keep (self, num):		return [Dice(self.sides, sorted(self)[::-1][:num])]
+	
+	def sort (self):
+		super(Dice, self).sort()
+		return [self]
 	
 	@catch
 	def explode (self, n=None, recursive=True, limit=10):
@@ -76,7 +84,7 @@ class Dice (list):
 		# Recursively check ``new`` for exploding dice,
 		# until ``limit`` reaches 0
 		while limit > 0:
-			new = [randint(1, dice.sides) for die in new if die >= n]
+			new = [rand(dice.sides) for die in new if die >= n]
 			# Return the dice if there are no new dice to try
 			# and explode, or recursive checking is disabled.
 			if len(new) == 0 or recursive == False:
@@ -103,7 +111,7 @@ class Components (object):
 		@catch
 		def dice_only_operator (string, location, tokens):
 			if not isinstance(tokens[0][0], Dice):
-				raise NotImplementedError, "Operator {} can only be used on Dice objects".format(tokens[0][1])
+				raise NotImplementedError, "Operator {} can only be used on Dice objects ({!r} given)".format(tokens[0][1], tokens[0][0])
 			return operator(tokens)
 		return dice_only_operator
 	
@@ -126,15 +134,18 @@ class Components (object):
 			return recursive_wrapped_operator
 		else:
 			def wrapped_operator(tokens):
-				x, op, y = tokens
+				x, op, y = tokens[0]
 				return operator(x, y)
 			return wrapped_operator
 	
 	#: The operations to add to the operatorPrecedence syntax
 	operators = [
 		# Dice only operators
-		(['v', 'drop'], DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
-		(['^', 'keep'], DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
+		(['*', 'explode'], DiceOnly(lambda t: t[0][0].explode()), 1),
+		(['v', 'drop'],    DiceOnly(Operation(lambda d, n: d.drop(n), recursive=False))),
+		(['^', 'keep'],    DiceOnly(Operation(lambda d, n: d.keep(n), recursive=False))),
+		(['t', 'total'],   DiceOnly(lambda t: int(t[0][0])), 1),
+		(['o', 'sort'],    DiceOnly(lambda t: t[0][0].sort()), 1),
 		
 		# General operators
 		(['~', 'diff'],	Operation(lambda x, y: int(x) - int(y))),
@@ -144,8 +155,6 @@ class Components (object):
 		(['/'], Operation(lambda x, y: x / y)),
 		
 		# Single term operators
-		(['t', 'total'], DiceOnly(lambda t: int(t[0][0])), 1),
-		(['*', 'explode'], DiceOnly(lambda t: t[0][0].explode()), 1),
 	]
 	
 	# Generate operators
@@ -164,7 +173,7 @@ class Components (object):
 	comment = Optional(dblSlashComment).suppress()
 
 #: The final diceroll expression
-expression = Components.operators + Components.comment
+expression = StringStart() + Components.operators + Components.comment + StringEnd()
 
 def roll (expr):
 	""" Roll ``expr`` """
