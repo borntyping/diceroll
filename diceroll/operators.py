@@ -8,7 +8,7 @@ def only_dice (func):
 	"""	Decorates a function so that it can only accept Dice objects as the first token """
 	def only_dice (self, string, location, tokens):
 		if not isinstance(tokens[0][0], Dice):
-			raise NotImplementedError, "Operator {0} can only be used on Dice objects ({1!r} given)".format(*tokens[0][0:2])
+			raise NotImplementedError, "Operator {1} can only be used on Dice objects ({0!r} given)".format(*tokens[0][0:2])
 		return func(self, tokens)
 	return only_dice
 
@@ -71,6 +71,7 @@ operator_list = [
 	DiceOperator(['*', 'explode'],	lambda d: d.explode()),
 	DiceOperator(['t', 'total'  ],	lambda d: int(d)),
 	DiceOperator(['s', 'sort'   ],	lambda d: d.sort()),
+	
 	DiceXYOperator(['v', 'drop'],	lambda x,y: x.drop(y)),
 	DiceXYOperator(['^', 'keep'],	lambda x,y: x.keep(y)),
 	

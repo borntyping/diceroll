@@ -24,25 +24,34 @@ Dice only operators
 
 These operators can be used on dice objects, and are listed in order of priority. Some do not return a Dice object, and should not be used before operators that do.
 
-``[D]v[N]``, ``[D]drop[N]``
+Dice operators which take ``Y`` (such as drop and keep) may not be followed by a dice only operator, unless you surround the expression in brackets ``()`` before continuing. Failing to do this will result in the dice only operator trying to act on ``Y``, and not the result of the previous expression. For example::
 
-Drop the ``N`` lowest rolls from diceroll ``D``. 
+	roll "5d6^3explode"
+	NotImplementedError: Operator explode can only be used on Dice objects (3 given)
+	
+	roll "(5d6^3)explode"
+	6, 5, 5, 1
 
-``[D]^[N]``, ``[D]keep[N]``
-
-Similar to drop, keeps the ``N`` highest rolls from ``D``.
-
-``[D]*``, ``[D]explode``
+``[X]*``, ``[X]explode``
 
 Rolls an extra die for every diceroll that hits the maximum.
 
-``[D]t``, ``[D]total``
+``[X]t``, ``[X]total``
 
-Returns the sum total of diceroll ``D`` (as an integer value).
+Returns the sum total of diceroll ``X`` (as an integer value).
 
-``[D]o``, ``[D]sort``
+``[X]o``, ``[X]sort``
 
 Sorts the rolls from lowest to highest.
+
+``[X]v[Y]``, ``[X]drop[Y]``
+
+Drop the ``Y`` lowest rolls from diceroll ``X``. 
+
+``[X]^[Y]``, ``[X]keep[Y]``
+
+Similar to drop, keeps the ``Y`` highest rolls from ``X``.
+
 
 Other operators
 ***************
@@ -53,9 +62,9 @@ These operators can be used on any two atoms (each either a diceroll or an integ
 
 Returns the difference between ``X`` and ``Y``.
 
-``[X] + [Y]``, ``[X] - [Y]``, ``[X] * [Y]``, ``[X] / [Y]``
+``[X] * [Y]``, ``[X] / [Y]``, ``[X] + [Y]``, ``[X] - [Y]``
 
-Performs a basic operation on two atoms  - respectively addition, subtraction, multiplication, division.
+Performs a basic operation on two atoms  - respectively multiplication, division, addition, subtraction.
 
 Future syntax
 -------------
