@@ -52,8 +52,8 @@ Reroll			``<D>reroll<N>``		Reroll any dice in ``D`` that are equal to or lower t
 Recursive Reroll	``<D>rreroll<N>``		``rreroll`` the same as ``reroll``, but does so recursively
 			``<D>rr<N>``			- any rerolled dice equal to or lower than ``N`` are also rerolled
 
-Diff			``X~<Y>``			Returns the difference between ``X`` and ``Y``.
-			``Xdiff<Y>``
+Diff			``<X>~<Y>``			Returns the difference between ``X`` and ``Y``.
+			``<X>diff<Y>``
 
 Success			``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that land equal to or higher than ``N``.
 					
