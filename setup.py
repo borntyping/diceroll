@@ -18,6 +18,6 @@ setup(
     install_requires = ['pyparsing>=1.5.6'],
     
     entry_points = {'console_scripts': [
-		'roll  = diceroll:cli',
+		'roll  = diceroll:command',
 	]},
 )

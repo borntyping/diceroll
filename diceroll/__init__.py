@@ -1,15 +1,11 @@
-#!/usr/bin/python
+"""	Command line entry point and metadata """
 
-__version__ = 0.5
-__all__     = ['expression', 'roll']
+__version__ = 1.0
 
-from grammar import expression
+from parser		import roll
+from pyparsing	import ParseException
 
-def roll (expr):
-	""" Roll ``expr`` """
-	return expression.parseString(expr)[0]
-
-def cli ():
+def command ():
 	""" Command line entry point """
 	import sys, argparse
 	parser = argparse.ArgumentParser(description="Return the results of a dice expression")
@@ -19,16 +15,21 @@ def cli ():
 	
 	parser.add_argument('--profile', action='store_true',
 		help='run using the cProfile profiler')
-	
+		
 	parser.add_argument('expression', type=str,
 		help='the expression to roll')
 	
 	args = parser.parse_args()
 	
-	if args.profile:
-		import cProfile
-		cProfile.runctx('print roll(args.expression)', globals(), locals())
-	else:
-		print roll(args.expression)
+	try:
+		if args.profile:
+			from cProfile import runctx
+			runctx('print roll(args.expression)', globals(), locals())
+		else:
+			print roll(args.expression)
+	except ParseException as e:
+		import sys
+		print >> sys.stderr, "Parse failed:", e
 
-if __name__ == '__main__': cli()
+if __name__ == '__main__':
+	command()

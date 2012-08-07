@@ -1,119 +1,159 @@
-"""	Generates the set of operators to use in the grammar """
+"""	Operator classes """
 
-from pyparsing import opAssoc, Literal, Optional, OnlyOnce
+__all__ = ['Operator', 'UnaryOperator', 'BinaryOperator', 'Generic', 'GenericUnaryOperator', 'GenericBinaryOperator', 'generic_unary', 'generic_binary', 'Sort', 'Explode', 'Join', 'Drop', 'Keep', 'Reroll', 'RecursiveReroll', 'Success']
 
-from dice import Dice
+from abc import ABCMeta, abstractmethod
 
-def only_dice (func):
-	"""	Decorates a function so that it can only accept Dice objects as the first token """
-	def only_dice (self, string, location, tokens):
-		if not isinstance(tokens[0][0], Dice):
-			raise NotImplementedError, "Operator {1} can only be used on Dice objects ({0!r} given)".format(*tokens[0][0:2])
-		return func(self, tokens)
-	return only_dice
+from pyparsing import *
+
+from objects import Dicerolls
+
+# -------------------------
+# Operator superclasses
+# -------------------------
 
 class Operator (object):
-	default_terms = 2
+	__metaclass__ = ABCMeta
 	
-	def __init__ (self, expressions, function, **kwargs):
-		self.expressions = list()
-		self.function    = function
-		self.terms       = kwargs.get('terms', self.default_terms)
-		self.association = kwargs.get('association', opAssoc.LEFT)
-		
-		# Add each syntax, surrounding strings in Literal()
-		for s in expressions:
-			if isinstance(s, str):
-				s = Literal(s)
-			self.expressions.append(s)
+	@abstractmethod
+	def __call__ (self, args):
+		raise NotImplementedError, self.__class__.__name__ + " has not defined a call method"
 	
-	def __call__ (tokens):
-		return self.function(tokens)
+	def require_dice (self, obj, error=None):
+		error = error or "Cannot call {operator} on {1}, as it is not a Dicerolls object "
+		if not isinstance(obj, Dicerolls):
+			raise NotImplementedError, error.format(operator=self.__class__.__name__, obj=obj)
+	
+	def __repr__ (self):
+		return '<'+self.__class__.__name__+'>'
 
-class DiceOperator (Operator):
-	"""	A single term operator that acts on dice """
-	default_terms = 1
+class UnaryOperator (Operator):
+	""" An operator that accepts a single token """
+	pass
+
+class BinaryOperator (Operator):
+	"""	An operator that accepts two tokens """
+	pass
+
+# -------------------------
+# Generic operators
+# -------------------------
 	
-	@only_dice
-	def __call__ (self, tokens):
-		dice, op = tokens[0]
-		return self.function(dice)
+class Generic (object):
+	"""
+	Allows the creation of simple lambda operators, such as::
 	
-class XYOperator (Operator):
-	"""	An operator that acts on two atoms, ``X`` and ``Y`` """
-	def __init__ (self, *args, **kwargs):
-		super(XYOperator, self).__init__(*args, **kwargs)
-		self.repeatable  = kwargs.get('r', False)
+		GenericBinaryOperator('Plus', lambda x,y: x + y)
+	"""
 	
-	def __call__ (self, tokens):
+	def __init__ (self, name, function):
+		self.__name__ = name
+		self.function = function
+	
+	def __call__ (self, *args):
+		return self.function(*args)
+	
+	def __repr__ (self):
+		return '<'+self.__name__+'>'
+
+class GenericUnaryOperator (Generic, UnaryOperator):
+	pass
+
+class GenericBinaryOperator (Generic, BinaryOperator):
+	pass
+
+# Shortcut functions that create parse actions
+generic_unary  = lambda n, f: (lambda tokens: GenericUnaryOperator(n, f))
+generic_binary = lambda n, f: (lambda tokens: GenericBinaryOperator(n, f))
+
+# -------------------------
+# Actual operators
+# -------------------------
+
+class Sort (UnaryOperator):
+	def __call__ (self, x):
+		x.sort()
+		return x
+
+class Explode (UnaryOperator):
+	def __init__ (self, tokens):
+		self.n = False
+		self.recursive = True
+		self.limit = 10
+	
+	def __call__ (self, dice):
+		return self.recursive_explode(dice, self.n or dice.sides)
+	
+	def recursive_explode (self, dice, n):
+		"""	Roll an extra die for each die >= ``n`` """
+		new = list(dice)
+		for i in xrange(self.limit):
+			new = [dice.rand() for d in new if d >= n]
+			# Return the dice if there are no new dice to try
+			# and explode, or recursive checking is disabled.
+			if len(new) == 0 or not self.recursive:
+				return dice
+			else:
+				dice.extend(new)
+		raise Exception, "I'll be here forever if I explode any more dice."
+
+class Join (BinaryOperator):
+	def __call__ (self, left, right):
 		"""
-		Calls the function with ``X`` and ``Y``,
-		
-		The function is called repeatedly if there is a list of ``Y`` values,
-		such as in the case ``1+1+1``, where ``X=1`` and ``Y=[1,1]``.
+		Joins elements into a tuple,
+		adding to an existing tuple where possible
 		"""
-		x  = tokens[0][0]
-		op = tokens[0][1]
-		if not self.repeatable:
-			return self.function(x, tokens[0][2])
+		if isinstance(left, tuple):
+			return left + (right,)
 		else:
-			# Extract the value to edit from the tokens,
-			# and the list of values to call the operator with
-			operations = tokens[0][2:]
-			while operations:
-				x = self.function(x, operations.pop(0))
-			return x
-
-class DiceXYOperator (XYOperator):
-	"""	Wraps the XPOperator.__call__() method in an only_dice decorator """
-	__call__ = only_dice(XYOperator.__call__)
-
-class SuccessOperator (DiceOperator):
-	default_terms = 2
-	flags = Optional(Literal('C')) + Optional(Literal('B'))
-	
-	def __init__ (self, names, *args, **kwargs):
-		expressions = [Literal(n) + self.flags for n in names]
-		super(SuccessOperator, self).__init__(expressions, None, *args, **kwargs)
-		
-	@only_dice
-	def __call__ (self, tokens):
-		dice, op, flags, y = tokens[0][0], tokens[0][1], tokens[0][2:-1], tokens[0][-1]
-		result = len(filter(lambda d: d >= y, dice))
-		
-		if ('C' in flags):
-			result -= len(filter(lambda d: d == 1, dice))
-		
-		if ('B' in flags):
-			result += len(filter(lambda d: d >= dice.sides, dice))
-		
-		return result
+			return (left, right)
 			
-#: The operations to add to the operatorPrecedence syntax
-operator_list = [
-	# Dice only operators
-	SuccessOperator(['success']),
-	
-	DiceOperator(['*', 'explode'],		lambda x: x.explode()),
-	DiceOperator(['s', 'sort'   ],		lambda x: x.sort()),
-	DiceOperator(['t', 'total'  ],		lambda x: int(x)),
-	
-	DiceXYOperator(['v', 'drop'],		lambda x,y: x.drop(y)),
-	DiceXYOperator(['^', 'keep'],		lambda x,y: x.keep(y)),
-	DiceXYOperator(['rr', 'rreroll'],	lambda x,y: x.rreroll(y)),
-	DiceXYOperator(['r', 'reroll'],		lambda x,y: x.reroll(y)),
-	
-	# General operators
-	XYOperator(['~', 'diff'], lambda x,y: int(x) - int(y)),
-	XYOperator(['*'], lambda x,y: int(x) * int(y)),
-	XYOperator(['/'], lambda x,y: int(x) / int(y)),
-	XYOperator(['+'], lambda x,y: int(x) + int(y)),
-	XYOperator(['-'], lambda x,y: int(x) - int(y)),
-]
+class Drop (BinaryOperator):
+	def __call__ (self, dice, n):
+		self.require_dice(dice, "Cannot drop dice from {obj}")
+		return Dicerolls(dice, sorted(dice)[n:])
 
-# Create a list of operators for use with 
-operators = list()
-for op in operator_list:
-	for expr in op.expressions:
-		# (opExpr, numTerms, rightLeftAssoc, parseAction)
-		operators.append((expr, op.terms, op.association, OnlyOnce(op)))
+class Keep (BinaryOperator):
+	def __call__ (self, dice, n):
+		"""	Keeps the ``n`` highest dice from ``d`` """
+		self.require_dice(dice, "Cannot keep dice from {obj}")
+		return Dicerolls(dice, sorted(dice)[::-1][:n])
+
+class Reroll (BinaryOperator):
+	def __call__ (self, dice, limit):
+		"""	Reroll all dice below ``limit`` """
+		self.require_dice(dice, "Cannot reroll dice from {obj}")
+		return Dicerolls(dice, [(dice.rand() if d <= limit else d) for d in dice])
+
+class RecursiveReroll (Reroll):
+	def __call__ (self, dice, limit):
+		"""	Recursively reroll dice """
+		self.require_dice(dice, "Cannot reroll dice from {obj}")
+		while len(filter(lambda d: d <= limit, dice)) > 0:
+			dice = Reroll.__call__(self, dice, limit)
+		return dice
+
+class Success (BinaryOperator):
+	grammars = [
+		CaselessLiteral('success').suppress()
+		+ Optional(White())
+		+ ZeroOrMore(CaselessLiteral('C') | CaselessLiteral('B'))
+	]
+	
+	def __init__ (self, tokens):
+		tokens = list(tokens)
+		self.canceling = ('C' in tokens)
+		self.bonuses = ('B' in tokens)
+		
+	def __call__ (self, dice, n):
+		result = len(filter(lambda d: d >= n, dice))
+		if self.canceling: result -= len(filter(lambda d: d == 1, dice))
+		if self.bonuses:   result += len(filter(lambda d: d >= dice.sides, dice))
+		return result
+
+	def __repr__ (self):
+		return '<{} ({}{})>'.format(
+			self.__class__.__name__,
+			'C' if self.canceling else '-',
+			'B' if self.bonuses else '-',
+		)
