@@ -10,98 +10,54 @@ Requirements
 
 Requires the `pyparsing <http://pypi.python.org/pypi/pyparsing/>`_ library.
 
-Syntax
-******
+Expression syntax
+*****************
 
-The expression syntax is made up of numbers, dice, and operators.
+The basic components of ``diceroll`` expressions are dice and integers, which can then have operators applied to them. The expression is always read left-to-right, so operators are called in order of position, *not* order of precedence.
 
-Dice
-----
+Dice are expressed in the form ``<N>d<S>``, where ``N`` is the number of dice that will be rolled, and ``S`` is the number of sides those dice have.
 
-``<N>d<S>``
+Integers are simply expressed as one or more digits (i.e. ``0-9``).
 
-A set of dice to roll, where ``N`` (optional, defaults to 1) is the number of dice to roll, and ``S`` is the number of sides the dice has.
+Subexpressions can be placed in parenthesis ``()``, and are evaluated in full before the main expression is evaluated.
 
-This returns a list of dice rolls. Numerical operators that are applied to the list (such as ``+``, ``-``, etc) will use the sum total of the dice rolls.
-
-Dice only operators
--------------------
-
-These operators can be used on dice objects, and are listed in order of priority. Some do not return a Dice object, and should not be used before operators that do.
-
-Dice operators which take ``Y`` (such as ``drop`` and ``keep``) may not be followed by a dice only operator, unless you surround the expression in brackets ``()`` before continuing. Failing to do this will result in the dice only operator trying to act on ``Y``, and not the result of the previous expression. For example::
-
-	roll "5d6^3explode"
-	NotImplementedError: Operator explode can only be used on Dice objects (3 given)
-	
-	roll "(5d6^3)explode"
-	6, 5, 5, 1
-
-Explode
-^^^^^^^
-	
-``<X>*``, ``<X>explode``
-
-Rolls an extra die for every diceroll that hits the maximum.
-
-Total
-^^^^^
-
-``<X>t``, ``<X>total``
-
-Returns the sum total of diceroll ``X`` (as an integer value).
-
-Sort
-^^^^
-
-``<X>o``, ``<X>sort``
-
-Sorts the rolls from lowest to highest.
-
-Success
-^^^^^^^
-
-``<D>success[C][B]<N>``
-
-Return the count of dice in ``D`` that land equal to or higher than ``N``. ``C`` and ``B`` are optional flags: ``C`` removes a success every time a die hits the minimum and ``B`` adds a success every time a die lands on the maximum.
-
-Drop
-^^^^
-
-``<X>v<Y>``, ``<X>drop<Y>``
-
-Drop the ``Y`` lowest rolls from diceroll ``X``. 
-
-Keep
-^^^^
-
-``<X>^<Y>``, ``<X>keep<Y>``
-
-Similar to drop, keeps the ``Y`` highest rolls from ``X``.
-
-Reroll
-^^^^^^
-
-``<D>rreroll<N>``, ``<D>rr<N>``
-``<D>reroll<N>``, ``<D>r<N>``
-
-Reroll any dice in ``D`` that are equal to or lower than ``N``. ``rreroll`` does so recursively (i.e. any rerolled dice equal to or lower than ``N`` are also rerolled), ``reroll`` does not.
-
-Other operators
+Unary operators
 ---------------
 
-These operators can be used on any two atoms (each either a diceroll or an integer) ``X`` and ``Y``.
+These operators act on the previous component, and almost always accept only dice.
 
-Diff
-^^^^
+=======	===============	============================================================
+Explode	``<D>x``,	Rolls an extra die for every diceroll that hits the maximum.
+	``<D>explode``
+Sort	``<D>s``,	Sorts diceroll ``D``.
+	``<D>sort``
+Total	``<D>t``	Returns the sum total of the diceroll (as an integer value).
+	``<D>total``
+=======	===============	============================================================
 
-``X~<Y>``, ``Xdiff<Y>``
+Binary operators
+----------------
 
-Returns the difference between ``X`` and ``Y``.
+These operators act on two components (the previous and the next).
 
-Basic operators
-^^^^^^^^^^^^^^^
+=======================	===============================	================================================================================
+Success			``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that land equal to or higher than ``N``.
+					
+							``C`` and ``B`` are optional flags: ``C`` removes a success every time a
+							die hits the minimum, ``B`` adds a success every time a die lands on the maximum
 
-``<X> * <Y>``, ``<X> / <Y>``, ``<X> + <Y>``, ``<X> - <Y>``
+Drop			``<X>v<Y>``, ``<X>drop<Y>``	Drop the ``Y`` lowest rolls from diceroll ``X``. 
 
-Performs a basic operation on two atoms - respectively multiplication, division, addition, subtraction. Dice are first converted to integers, by calculating the sum total of the rolls.
+Keep			``<X>^<Y>``, ``<X>keep<Y>``	Similar to drop, keeps the ``Y`` highest rolls from ``X``.
+
+Reroll			``<D>reroll<N>``, ``<D>r<N>``	Reroll any dice in ``D`` that are equal to or lower than ``N``.
+
+Recursive Reroll	``<D>rreroll<N>``, ``<D>rr<N>``	``rreroll`` the same as ``reroll``, but does so recursively
+							- any rerolled dice equal to or lower than ``N`` are also rerolled
+
+Diff			``X~<Y>``, ``Xdiff<Y>``		Returns the difference between ``X`` and ``Y``.
+
+Arithmetic		``<X> * <Y>``, ``<X> / <Y>``,	Performs a basic operation on two components - respectively multiplication, 
+			``<X> + <Y>``, ``<X> - <Y>``	division, addition, subtraction. Dicerolls are converted to integers, using
+							the sum total of the rolls
+=======================	===============================	================================================================================
