@@ -1,6 +1,6 @@
 """	Operator classes """
 
-__all__ = ['Operator', 'UnaryOperator', 'BinaryOperator', 'Generic', 'GenericUnaryOperator', 'GenericBinaryOperator', 'generic_unary', 'generic_binary', 'Explode', 'Join', 'Drop', 'Keep', 'Reroll', 'RecursiveReroll', 'Success']
+__all__ = ['Operator', 'UnaryOperator', 'BinaryOperator', 'Generic', 'GenericUnaryOperator', 'GenericBinaryOperator', 'generic_unary', 'generic_binary', 'Sort', 'Explode', 'Join', 'Drop', 'Keep', 'Reroll', 'RecursiveReroll', 'Success']
 
 from abc import ABCMeta, abstractmethod
 
@@ -70,6 +70,11 @@ generic_binary = lambda n, f: (lambda tokens: GenericBinaryOperator(n, f))
 # Actual operators
 # -------------------------
 
+class Sort (UnaryOperator):
+	def __call__ (self, x):
+		x.sort()
+		return x
+
 class Explode (UnaryOperator):
 	def __init__ (self, tokens):
 		self.n = False
@@ -102,7 +107,7 @@ class Join (BinaryOperator):
 			return left + (right,)
 		else:
 			return (left, right)
-
+			
 class Drop (BinaryOperator):
 	def __call__ (self, dice, n):
 		self.require_dice(dice, "Cannot drop dice from {obj}")
@@ -130,10 +135,13 @@ class RecursiveReroll (Reroll):
 
 class Success (BinaryOperator):
 	grammars = [
-		CaselessLiteral('success').suppress() + Optional(CaselessLiteral('C')) + Optional(CaselessLiteral('B')),
+		CaselessLiteral('success').suppress()
+		+ Optional(White())
+		+ ZeroOrMore(CaselessLiteral('C') | CaselessLiteral('B'))
 	]
 	
 	def __init__ (self, tokens):
+		tokens = list(tokens)
 		self.canceling = ('C' in tokens)
 		self.bonuses = ('B' in tokens)
 		
@@ -142,3 +150,10 @@ class Success (BinaryOperator):
 		if self.canceling: result -= len(filter(lambda d: d == 1, dice))
 		if self.bonuses:   result += len(filter(lambda d: d >= dice.sides, dice))
 		return result
+
+	def __repr__ (self):
+		return '<{} ({}{})>'.format(
+			self.__class__.__name__,
+			'C' if self.canceling else '-',
+			'B' if self.bonuses else '-',
+		)

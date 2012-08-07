@@ -32,13 +32,10 @@ sub_expr = lparen + expr + rparen
 # and a function that takes the parsed tokens and returns a UnaryOperator object
 # The UnaryOperator object will be called with the previous token at evaluation time
 unary_operator_list = [
-	([Literal('*'), CaselessLiteral('explode')], Explode),
-	
-	([CaselessLiteral('t'), CaselessLiteral('total')],
+	([CaselessKeyword('x'), CaselessKeyword('explode')], Explode),
+	([CaselessKeyword('s'), CaselessKeyword('sort')], Sort),
+	([CaselessKeyword('t'), CaselessKeyword('total')],
 		generic_unary('Total', lambda x: int(x))),
-	
-	([CaselessLiteral('s'), CaselessLiteral('sort')],
-		generic_unary('Sort',  lambda x: x.sort())),
 ]
 
 # Unary operators must be placed after an atom
@@ -48,7 +45,7 @@ for names, function in unary_operator_list:
 unary_operators = Or(unary_operators)
 
 # An atom is the smallest part of an expression
-atom = (dice | sub_expr) + ZeroOrMore(unary_operators) | number
+atom = (dice | number | sub_expr) + ZeroOrMore(unary_operators)
 atom.setName('dice, number or expression')
 
 # If numbers had any unary operators, atom could be defined as:
@@ -57,16 +54,17 @@ atom.setName('dice, number or expression')
 # Binary operators work in much the same was as unary operators,
 # but will be given the tokens to their left and right when evaluated
 binary_operator_list = [
-	([CaselessLiteral('rr'), CaselessLiteral('rreroll')], RecursiveReroll),
-	([CaselessLiteral('r'),  CaselessLiteral('reroll')], Reroll),
-	([CaselessLiteral('v'),  CaselessLiteral('drop')], Drop),
+	([CaselessKeyword('rr'), CaselessKeyword('rreroll')], RecursiveReroll),
+	([CaselessKeyword('r'),  CaselessKeyword('reroll')], Reroll),
+	([CaselessKeyword('v'),  CaselessKeyword('drop')], Drop),
+	([Literal(',')], Join),
 	([Literal('+')], generic_binary('Plus',      lambda x,y: x + y)),
 	([Literal('-')], generic_binary('Minus',     lambda x,y: x - y)),
 	([Literal('*')], generic_binary('Multiply',  lambda x,y: x * y)),
 	([Literal('/')], generic_binary('Divide',    lambda x,y: x / y)),
-	([Literal(',')], Join),
-	([Literal('^'), CaselessLiteral('keep')], Keep),
-	([Literal('~'), CaselessLiteral('diff')], generic_binary('Diffrence',	lambda x,y: int(x) - int(y))),
+	([Literal('^'), CaselessKeyword('keep')], Keep),
+	([Literal('~'), CaselessKeyword('diff')],
+					 generic_binary('Diffrence', lambda x,y: int(x) - int(y))),
 	(Success.grammars, Success),
 ]
 
