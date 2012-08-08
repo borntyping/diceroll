@@ -6,7 +6,7 @@ from pyparsing	import *
 
 ParserElement.enablePackrat()
 
-from evaluate	import evaluate
+from evaluate	import Expression
 from objects	import UnrolledDice
 from operators	import *
 
@@ -14,14 +14,14 @@ from operators	import *
 number = Word(nums).setName("number")
 number.setParseAction(lambda tokens: int(tokens[0]))
 
-# Dicerolls are evaluated to UnrolledDice objects
+# RolledDice are evaluated to UnrolledDice objects
 dice = Optional(number, default=1) + CaselessLiteral("d") + number
 dice.setParseAction(lambda t: UnrolledDice(n=t[0], sides=t[2]))
 
 # The expression grammar is defined later,
 # but is created here so that it can be included in sub-expressions
 expr = Forward()
-expr.setParseAction(evaluate)
+expr.setParseAction(Expression)
 
 # Subexpressions allow atoms to be another expression surrounded by brackets
 lparen = Literal('(').suppress()
@@ -45,11 +45,8 @@ for names, function in unary_operator_list:
 unary_operators = Or(unary_operators)
 
 # An atom is the smallest part of an expression
-atom = (dice | number | sub_expr) + ZeroOrMore(unary_operators)
+atom = ( dice | number | sub_expr ) + ZeroOrMore(unary_operators)
 atom.setName('dice, number or expression')
-
-# If numbers had any unary operators, atom could be defined as:
-# atom = (dice | number | sub_expr) + ZeroOrMore(unary_operators)
 
 # Binary operators work in much the same was as unary operators,
 # but will be given the tokens to their left and right when evaluated
@@ -83,6 +80,5 @@ expr << atom + ZeroOrMore(binary_operators + atom)
 comment = dblSlashComment.suppress().setName("comment")
 dicerollexpression = StringStart() + expr + Optional(comment) + StringEnd()
 
-def roll (string):
-	result = dicerollexpression.parseString(string)
-	return result[0] if len(result) == 1 else result
+def roll (expression, **modifiers):
+	return dicerollexpression.parseString(expression)[0].evaluate(**modifiers)

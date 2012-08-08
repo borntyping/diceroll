@@ -6,7 +6,7 @@ from abc import ABCMeta, abstractmethod
 
 from pyparsing import *
 
-from objects import Dicerolls
+from objects import RolledDice
 
 # -------------------------
 # Operator superclasses
@@ -20,8 +20,8 @@ class Operator (object):
 		raise NotImplementedError, self.__class__.__name__ + " has not defined a call method"
 	
 	def require_dice (self, obj, error=None):
-		error = error or "Cannot call {operator} on {1}, as it is not a Dicerolls object "
-		if not isinstance(obj, Dicerolls):
+		error = error or "Cannot call {operator} on {1}, as it is not a RolledDice object "
+		if not isinstance(obj, RolledDice):
 			raise NotImplementedError, error.format(operator=self.__class__.__name__, obj=obj)
 	
 	def __repr__ (self):
@@ -82,6 +82,7 @@ class Explode (UnaryOperator):
 		self.limit = 10
 	
 	def __call__ (self, dice):
+		self.require_dice(dice, "Cannot explode {obj}")
 		return self.recursive_explode(dice, self.n or dice.sides)
 	
 	def recursive_explode (self, dice, n):
@@ -111,19 +112,19 @@ class Join (BinaryOperator):
 class Drop (BinaryOperator):
 	def __call__ (self, dice, n):
 		self.require_dice(dice, "Cannot drop dice from {obj}")
-		return Dicerolls(dice, sorted(dice)[n:])
+		return RolledDice(dice, sorted(dice)[n:])
 
 class Keep (BinaryOperator):
 	def __call__ (self, dice, n):
 		"""	Keeps the ``n`` highest dice from ``d`` """
 		self.require_dice(dice, "Cannot keep dice from {obj}")
-		return Dicerolls(dice, sorted(dice)[::-1][:n])
+		return RolledDice(dice, sorted(dice)[::-1][:n])
 
 class Reroll (BinaryOperator):
 	def __call__ (self, dice, limit):
 		"""	Reroll all dice below ``limit`` """
 		self.require_dice(dice, "Cannot reroll dice from {obj}")
-		return Dicerolls(dice, [(dice.rand() if d <= limit else d) for d in dice])
+		return RolledDice(dice, [(dice.rand() if d <= limit else d) for d in dice])
 
 class RecursiveReroll (Reroll):
 	def __call__ (self, dice, limit):
@@ -146,7 +147,7 @@ class Success (BinaryOperator):
 		self.bonuses = ('B' in tokens)
 		
 	def __call__ (self, dice, n):
-		result = len(filter(lambda d: d >= n, dice))
+		result = len(filter(lambda d: d >= int(n), dice))
 		if self.canceling: result -= len(filter(lambda d: d == 1, dice))
 		if self.bonuses:   result += len(filter(lambda d: d >= dice.sides, dice))
 		return result

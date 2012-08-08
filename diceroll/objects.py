@@ -2,15 +2,15 @@
 
 from random import randint
 
-class Dicerolls (list):
+class RolledDice (list):
 	"""	A list of dice rolls """
 	
 	def __init__ (self, a, dice=()):
 		"""
 		:Parameters:
-			- `a`: Either a dice object (which the number of sides will be extracted from), or the number of sides the Dicerolls should have.
+			- `a`: Either a dice object (which the number of sides will be extracted from), or the number of sides the RolledDice should have.
 		"""
-		self.sides = a.sides if isinstance(a, Dicerolls) else a
+		self.sides = a.sides if isinstance(a, RolledDice) else a
 			
 		for d in dice:
 			self.append(d)
@@ -25,7 +25,7 @@ class Dicerolls (list):
 		return self
 			
 	def __repr__ (self):
-		return "{}({}){}".format(self.__class__.__name__, self.sides, tuple(self))
+		return "Dice<{}>{}".format(self.__class__.__name__, self.sides, tuple(self))
 	
 	def __int__ (self):			return sum(self)
 	def __add__ (self, other):	return int(self) + int(other)
@@ -39,8 +39,8 @@ class UnrolledDice (object):
 		self.n = n
 		self.sides = sides
 
-	def roll (self):
-		return Dicerolls(self.sides).roll(self.n)
+	def evaluate (self, **modifiers):
+		return RolledDice(self.sides).roll(self.n)
 		
 	def __repr__ (self):
-		return "{}({},{})".format(self.__class__.__name__, self.n, self.sides)
+		return "{n}d{s}".format(n=self.n, s=self.sides)
