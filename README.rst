@@ -29,18 +29,23 @@ Operators
 **Unary operators** - These operators act on the previous component, and almost always accept only dice.
 ----------------------------------------------------------------------------------------------------------------------------------------
 
-Explode			``<D>x``			Rolls an extra die for every diceroll that hits the maximum.
-			``<D>explode``
+Total			``<D>t``			Returns the sum total of the diceroll (as an integer value).
+			``<D>total``
 
 Sort			``<D>s``			Sorts diceroll ``D``.
 			``<D>sort``
 
-Total			``<D>t``			Returns the sum total of the diceroll (as an integer value).
-			``<D>total``
+Explode			``<D>x``			Rolls an extra die for every diceroll that hits the maximum.
+			``<D>explode``
 
 **Binary Operators** - These operators act on two components (the previous and the next).
 ----------------------------------------------------------------------------------------------------------------------------------------
-Drop			``<X>v<Y>``			Drop the ``Y`` lowest rolls from diceroll ``X``. 
+Arithmetic		``<X>*<Y>``			Performs a basic operation on two components - respectively multiplication, 
+			``<X>/<Y>``			division, addition, subtraction. Dicerolls are converted to integers, using
+			``<X>+<Y>``			the sum total of the rolls
+			``<X>-<Y>``
+
+			Drop			``<X>v<Y>``			Drop the ``Y`` lowest rolls from diceroll ``X``. 
 			``<X>drop<Y>``
 
 Keep			``<X>^<Y>``			Similar to drop, keeps the ``Y`` highest rolls from ``X``.
@@ -59,9 +64,4 @@ Success			``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that lan
 					
 							``C`` and ``B`` are optional flags: ``C`` removes a success every time a
 							die hits the minimum, ``B`` adds a success every time a die lands on the maximum
-
-Arithmetic		``<X>*<Y>``			Performs a basic operation on two components - respectively multiplication, 
-			``<X>/<Y>``			division, addition, subtraction. Dicerolls are converted to integers, using
-			``<X>+<Y>``			the sum total of the rolls
-			``<X>-<Y>``
 =======================	===============================	================================================================================

@@ -2,8 +2,7 @@
 
 from traceback	import print_exc
 
-from objects	import UnrolledDice
-from operators	import Operator, UnaryOperator, BinaryOperator
+from components	import UnrolledDice, Operator
 
 class Expression (object):
 	def __init__ (self, tokens):
@@ -34,7 +33,7 @@ class Expression (object):
 		
 		self.log("Evaluating the expression: {tokens!r}", depth=-1)
 		try:
-			# Roll the dice
+			# Roll the dice, and evaluate sub-expressions
 			for i in xrange(len(self.tokens)):
 				if isinstance(self.tokens[i], Expression):
 					self.tokens[i] = self.tokens[i].evaluate(depth=self.depth+1, **modifiers)
@@ -47,17 +46,20 @@ class Expression (object):
 			# Call the operators
 			l = 0
 			while l < len(self.tokens):
-				t = self.tokens[l]
-				if isinstance(t, Operator):
-					# TODO: Refactor this to use Operator.terms
-					if isinstance(t, UnaryOperator):
-						result = t(self.tokens[l-1])
-						self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+1:]
-					elif isinstance(self.tokens[l], BinaryOperator):
-						result = t(self.tokens[l-1], self.tokens[l+1])
-						self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+2:]
-					self.log("Called {operator}", operator=t.__class__.__name__, l=l+1)
+				op = self.tokens[l]
+				if isinstance(op, Operator):
+					# The arguments are the previous and next tokens,
+					# with no next token if the operator only takes 1 term
+					args = [self.tokens[l-1]]
+					if not op.terms < 2:
+						args += [self.tokens[l+1]]
+					result = op(*args)
+					# The new token list is the token list with the argument tokens
+					# and the operator replaced with the operators result
+					self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+op.terms:]
+					self.log("Called {operator}: {result}", operator=op.name, result=result)
 				else:
+					# The location only needs to move on if no operator was called
 					l += 1
 		except Exception, e:
 			print_exc()

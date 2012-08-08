@@ -1,6 +1,6 @@
 """	Command line entry point and metadata """
 
-__version__ = 1.1
+__version__ = 1.2
 
 from parser		import roll
 from pyparsing	import ParseException
