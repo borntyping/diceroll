@@ -1,4 +1,11 @@
-"""	Command line entry point and metadata """
+"""
+A dice expression parser
+
+Author: Sam Clements <sam@borntyping.co.uk>
+
+https://github.com/borntyping/diceroll
+http://pypi.python.org/pypi/diceroll
+"""
 
 __version__ = 1.2
 __all__ = ['roll']

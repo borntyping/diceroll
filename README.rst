@@ -47,7 +47,7 @@ Arithmetic		``<X>*<Y>``			Performs a basic operation on two components - respect
 			``<X>+<Y>``			the sum total of the rolls
 			``<X>-<Y>``
 
-			Drop			``<X>v<Y>``			Drop the ``Y`` lowest rolls from diceroll ``X``. 
+Drop			``<X>v<Y>``			Drop the ``Y`` lowest rolls from diceroll ``X``. 
 			``<X>drop<Y>``
 
 Keep			``<X>^<Y>``			Similar to drop, keeps the ``Y`` highest rolls from ``X``.
@@ -56,14 +56,13 @@ Keep			``<X>^<Y>``			Similar to drop, keeps the ``Y`` highest rolls from ``X``.
 Reroll			``<D>reroll<N>``		Reroll any dice in ``D`` that are equal to or lower than ``N``.
 			``<D>r<N>``
 			
-Recursive Reroll	``<D>rreroll<N>``		``rreroll`` the same as ``reroll``, but does so recursively
+Recursive Reroll	``<D>rreroll<N>``		The same as ``reroll``, but does so recursively
 			``<D>rr<N>``			- any rerolled dice equal to or lower than ``N`` are also rerolled
 
 Diff			``<X>~<Y>``			Returns the difference between ``X`` and ``Y``.
 			``<X>diff<Y>``
 
 Success			``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that land equal to or higher than ``N``.
-					
-							``C`` and ``B`` are optional flags: ``C`` removes a success every time a
-							die hits the minimum, ``B`` adds a success every time a die lands on the maximum
+							``C`` and ``B`` are optional flags: ``C`` removes a success every time a die
+							hits the minimum, ``B`` adds a success every time a die lands on the maximum.
 =======================	===============================	================================================================================
