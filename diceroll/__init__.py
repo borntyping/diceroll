@@ -1,6 +1,7 @@
 """	Command line entry point and metadata """
 
 __version__ = 1.2
+__all__ = ['roll']
 
 from parser		import roll
 from pyparsing	import ParseException

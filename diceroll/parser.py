@@ -1,12 +1,12 @@
 """	The expression parser """
 
-__all__ = ['number', 'dice', 'expr', 'sub_expr', 'unary_operators', 'binary_operators', 'comment', 'dicerollexpression', 'roll']
+__all__ = ['number', 'dice', 'expr', 'sub_expr', 'unary_operators', 'binary_operators', 'expressions', 'comment', 'dicerollexpression', 'roll']
 
 from pyparsing	import *
 
 ParserElement.enablePackrat()
 
-from evaluate	import Expression
+from evaluate	import Expression, single
 from components	import *
 
 # Numbers are evaluated to Number objects
@@ -50,8 +50,19 @@ for operator in [Drop, Keep, Reroll, RecursiveReroll, Success, Plus, Minus, Mult
 binary_operators = Or(binary_operators)
 
 expr << atom + ZeroOrMore(binary_operators + atom)
+expressions = expr + ZeroOrMore(Literal(',').suppress() + expr)
 comment = dblSlashComment.suppress().setName("comment")
-dicerollexpression = StringStart() + expr + Optional(comment) + StringEnd()
+dicerollexpression = StringStart() + expressions + Optional(comment) + StringEnd()
 
 def roll (expression, **modifiers):
-	return dicerollexpression.parseString(expression)[0].evaluate(**modifiers)
+	"""
+	Parse and evaluate the given expression
+	
+	All keywords are passed on to the calls to :py:func:``~Expression.evaluate`` and :py:func:``~components.UnrolledDice.roll``
+	
+	:Keywords:
+		- `single` (bool): Apply :py:func:`single` to the resulting list. Defaults to True.
+	"""
+	parsed = dicerollexpression.parseString(expression)
+	result = [expr.evaluate(**modifiers) for expr in parsed]
+	return single(result) if modifiers.get('single', True) else result

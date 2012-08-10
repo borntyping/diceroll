@@ -15,6 +15,8 @@ Expression syntax
 
 The basic components of ``diceroll`` expressions are dice and integers, which can then have operators applied to them. The expression is always read left-to-right, so operators are called in order of position, *not* order of precedence.
 
+Multiple expressions can be given, seperated by commas (``,``).
+
 Dice are expressed in the form ``<N>d<S>``, where ``N`` is the number of dice that will be rolled, and ``S`` is the number of sides those dice have.
 
 Integers are simply expressed as one or more digits (i.e. ``0-9``).

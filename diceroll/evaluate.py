@@ -4,6 +4,17 @@ from traceback	import print_exc
 
 from components	import UnrolledDice, Operator
 
+def single (list):
+	"""
+	Returns a single item from a list if possible
+	
+	>>> single([1])
+	1
+	>>> single([1, 2, 3])
+	[1, 2, 3]
+	"""
+	return list[0] if len(list) == 1 else list
+
 class Expression (object):
 	def __init__ (self, tokens):
 		self.depth = 0
@@ -65,7 +76,4 @@ class Expression (object):
 			print_exc()
 			exit()
 		else:
-			if len(self.tokens) == 1:
-				return self.tokens[0]
-			else:
-				return self.tokens
+			return single(self.tokens)
