@@ -51,7 +51,7 @@ class UnrolledDice (object):
 		self.n = n
 		self.sides = sides
 
-	def evaluate (self, **modifiers):
+	def evaluate (self):
 		return RolledDice(self.sides).roll(self.n)
 		
 	def __repr__ (self):
@@ -67,7 +67,7 @@ class Operator (object):
 	grammars = ()
 	
 	@abstractmethod
-	def __call__ (self, args):
+	def __call__ (self, *args):
 		raise NotImplementedError, self.__class__.__name__ + " has not defined a call method"
 	
 	@property

@@ -50,7 +50,7 @@ class Expression (object):
 					self.tokens[i] = self.tokens[i].evaluate(depth=self.depth+1, **modifiers)
 				elif isinstance(self.tokens[i], UnrolledDice):
 					dice = self.tokens[i]
-					self.tokens[i] = self.tokens[i].evaluate(**modifiers)
+					self.tokens[i] = self.tokens[i].evaluate()
 					self.log("Rolled {n}d{s}: {roll}",
 						n=dice.n, s=dice.sides, roll=list(self.tokens[i]))
 			
@@ -72,7 +72,9 @@ class Expression (object):
 				else:
 					# The location only needs to move on if no operator was called
 					l += 1
-		except Exception, e:
+		except:
+			# Something went wrong - if we don't print and raise the error here,
+			# it'll be swallowed by pyparsing.
 			print_exc()
 			exit()
 		else:
