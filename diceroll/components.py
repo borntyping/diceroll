@@ -41,7 +41,11 @@ class RolledDice (list):
 		for i in xrange(n):
 			self.append(self.rand())
 		return self
-			
+	
+	def __str__ (self):
+		"""	Strip the [] from the results """
+		return super(RolledDice, self).__repr__()[1:-1]
+		
 	def __repr__ (self):
 		return "Dice<{}>{}".format(self.sides, tuple(self))
 	
