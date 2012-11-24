@@ -14,16 +14,16 @@ class TestNumber (unittest.TestCase):
 
 class TestDice (unittest.TestCase):
 	def test_parse_d6 (self):
-		self.assertTrue(roll("d6"))
+		self.assertIsInstance(roll("d6"), RolledDice)
 	
 	def test_parse_default_n (self):
 		self.assertEquals(roll("d1"), roll("1d1"))
 		
 	def test_parse_2d6 (self):
-		self.assertTrue(roll("2d6"))
+		self.assertIsInstance(roll("2d6"), RolledDice)
 	
 	def test_parse_alternate_case (self):
-		self.assertTrue(roll("D6"))
+		self.assertIsInstance(roll("D6"), RolledDice)
 	
 	def test_type (self):
 		self.assertIsInstance(roll("2d6"), RolledDice)
@@ -34,18 +34,18 @@ class TestDice (unittest.TestCase):
 	def test_missing_s (self):
 		self.assertRaises(ParseException, roll, "1d")
 	
-class TestAtom (unittest.TestCase):
+class TestUnaryOperators (unittest.TestCase):
 	def setUp (self):
 		self.subatoms = ("6d6", "(6d6)")
 	
 	def test_subatoms (self):
 		for subatom in self.subatoms:
-			self.assertTrue(roll(subatom))
+			self.assertIsInstance(roll(subatom), RolledDice)
 	
 	def test_explode (self):
 		for subatom in self.subatoms:
 			for op in ("x", "explode"):
-				self.assertTrue(roll(subatom + op))
+				self.assertIsInstance(roll(subatom + op), RolledDice)
 	
 	def test_sort (self):
 		for subatom in self.subatoms:
@@ -56,7 +56,7 @@ class TestAtom (unittest.TestCase):
 	def test_total (self):
 		for subatom in self.subatoms:
 			for op in ("t", "total"):
-				self.assertTrue(roll(subatom + op))
-	
+				self.assertIsInstance(roll(subatom + op), int)
+
 if __name__ == '__main__':
     unittest.main()
