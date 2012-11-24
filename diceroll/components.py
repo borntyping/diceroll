@@ -130,7 +130,7 @@ class Explode (Operator):
 	
 	def __call__ (self, dice):
 		self.require_dice(dice, "Cannot explode {obj}")
-		return self.recursive_explode(dice, self.n or dice.sides)
+		return self.recursive_explode(dice, dice.sides)
 	
 	def recursive_explode (self, dice, n):
 		"""	Roll an extra die for each die >= ``n`` """
