@@ -43,39 +43,32 @@ class Expression (object):
 			self.log = lambda *a, **k: None
 		
 		self.log("Evaluating the expression: {tokens!r}", depth=-1)
-		try:
-			# Roll the dice, and evaluate sub-expressions
-			for i in xrange(len(self.tokens)):
-				if isinstance(self.tokens[i], Expression):
-					self.tokens[i] = self.tokens[i].evaluate(depth=self.depth+1, **modifiers)
-				elif isinstance(self.tokens[i], UnrolledDice):
-					dice = self.tokens[i]
-					self.tokens[i] = self.tokens[i].evaluate()
-					self.log("Rolled {n}d{s}: {roll}",
-						n=dice.n, s=dice.sides, roll=list(self.tokens[i]))
-			
-			# Call the operators
-			l = 0
-			while l < len(self.tokens):
-				op = self.tokens[l]
-				if isinstance(op, Operator):
-					# The arguments are the previous and next tokens,
-					# with no next token if the operator only takes 1 term
-					args = [self.tokens[l-1]]
-					if not op.terms < 2:
-						args += [self.tokens[l+1]]
-					result = op(*args)
-					# The new token list is the token list with the argument tokens
-					# and the operator replaced with the operators result
-					self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+op.terms:]
-					self.log("Called {operator}: {result}", operator=op.name, result=result)
-				else:
-					# The location only needs to move on if no operator was called
-					l += 1
-		except:
-			# Something went wrong - if we don't print and raise the error here,
-			# it'll be swallowed by pyparsing.
-			print_exc()
-			exit()
-		else:
-			return single(self.tokens)
+		# Roll the dice, and evaluate sub-expressions
+		for i in xrange(len(self.tokens)):
+			if isinstance(self.tokens[i], Expression):
+				self.tokens[i] = self.tokens[i].evaluate(depth=self.depth+1, **modifiers)
+			elif isinstance(self.tokens[i], UnrolledDice):
+				dice = self.tokens[i]
+				self.tokens[i] = self.tokens[i].evaluate()
+				self.log("Rolled {n}d{s}: {roll}",
+					n=dice.n, s=dice.sides, roll=list(self.tokens[i]))
+		
+		# Call the operators
+		l = 0
+		while l < len(self.tokens):
+			op = self.tokens[l]
+			if isinstance(op, Operator):
+				# The arguments are the previous and next tokens,
+				# with no next token if the operator only takes 1 term
+				args = [self.tokens[l-1]]
+				if not op.terms < 2:
+					args += [self.tokens[l+1]]
+				result = op(*args)
+				# The new token list is the token list with the argument tokens
+				# and the operator replaced with the operators result
+				self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+op.terms:]
+				self.log("Called {operator}: {result}", operator=op.name, result=result)
+			else:
+				# The location only needs to move on if no operator was called
+				l += 1
+		return single(self.tokens)
