@@ -163,7 +163,7 @@ class Drop (Operator):
 		return RolledDice(dice, sorted(dice)[n:])
 
 class Keep (Operator):
-	grammars = literals('^') + keywords('drop')
+	grammars = literals('^') + keywords('keep')
 	
 	def __call__ (self, dice, n):
 		"""	Keeps the ``n`` highest dice from ``d`` """
