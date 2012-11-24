@@ -34,5 +34,29 @@ class TestDice (unittest.TestCase):
 	def test_missing_s (self):
 		self.assertRaises(ParseException, roll, "1d")
 	
+class TestAtom (unittest.TestCase):
+	def setUp (self):
+		self.subatoms = ("6d6", "(6d6)")
+	
+	def test_subatoms (self):
+		for subatom in self.subatoms:
+			self.assertTrue(roll(subatom))
+	
+	def test_explode (self):
+		for subatom in self.subatoms:
+			for op in ("x", "explode"):
+				self.assertTrue(roll(subatom + op))
+	
+	def test_sort (self):
+		for subatom in self.subatoms:
+			for op in ("s", "sort"):
+				result = roll(subatom + op)
+				self.assertEquals(result, sorted(result))
+			
+	def test_total (self):
+		for subatom in self.subatoms:
+			for op in ("t", "total"):
+				self.assertTrue(roll(subatom + op))
+	
 if __name__ == '__main__':
     unittest.main()
