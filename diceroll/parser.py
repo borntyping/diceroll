@@ -27,7 +27,7 @@ lparen = Literal('(').suppress()
 rparen = Literal(')').suppress()
 sub_expr = lparen + expr + rparen
 
-# Unary operators must be placed after an atom
+# All current unary operators only operate on dice and subexpressions that return dice
 unary_operators = list()
 for operator in [Explode, Sort, Total]:
 	for grammar in operator.grammars:
@@ -35,7 +35,7 @@ for operator in [Explode, Sort, Total]:
 unary_operators = Or(unary_operators)
 
 # An atom is the smallest part of an expression
-atom = ( dice | number | sub_expr ) + ZeroOrMore(unary_operators)
+atom = ( dice | sub_expr ) + ZeroOrMore(unary_operators) | number
 atom.setName('dice, number or expression')
 
 # Binary operators must both follow and precede an atom
