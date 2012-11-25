@@ -1,6 +1,10 @@
 """	Operator classes """
 
-__all__ = ['RolledDice', 'UnrolledDice', 'Operator', 'Generic'] + ['Total', 'Sort', 'Explode'] + ['Plus', 'Minus', 'Multiply', 'Divide', 'Drop', 'Keep', 'Reroll', 'RecursiveReroll', 'Success']
+__all__ = [
+	'RolledDice', 'UnrolledDice', 'Operator', 'GenericOperator', 'Total',
+	'Sort', 'Explode', 'Plus', 'Minus', 'Multiply', 'Divide', 'Drop', 'Keep',
+	'Reroll', 'RecursiveReroll', 'Success'
+]
 
 from abc		import ABCMeta, abstractmethod
 from random		import randint
@@ -8,12 +12,15 @@ from random		import randint
 from pyparsing	import *
 
 def grammars (cls, iterable):
+	"""	Create an instance of `cls` for each item in `iterable` """
 	return [cls(g) for g in iterable]
 
 def literals (*g):
+	"""	Return an Literal for each arg """
 	return grammars(Literal, g)
 	
 def keywords (*g):
+	""" Return a CaselessKeyword for each arg """
 	return grammars(CaselessKeyword, g)
 
 # -------------------------
@@ -34,12 +41,12 @@ class RolledDice (list):
 			self.append(d)
 	
 	def rand (self, sides=False):
+		"""	Return a random number """
 		return randint(1, sides or self.sides)
 	
 	def roll (self, n):
 		"""	Roll ``n`` dice and add them to the list """
-		for i in xrange(n):
-			self.append(self.rand())
+		self += [self.rand() for i in xrange(n)]
 		return self
 	
 	def __str__ (self):
@@ -49,21 +56,26 @@ class RolledDice (list):
 	def __repr__ (self):
 		return "Dice<{}>{}".format(self.sides, tuple(self))
 	
-	def __int__ (self):			return sum(self)
-	def __add__ (self, other):	return int(self) + int(other)
-	def __sub__ (self, other):	return int(self) - int(other)
-	def __mul__ (self, other):	return int(self) * int(other)
-	def __div__ (self, other):	return int(self) / int(other)
+	__int__ = lambda self: sum(self)
+	__add__ = lambda self, other: int(self) + int(other)
+	__sub__ = lambda self, other: int(self) - int(other)
+	__mul__ = lambda self, other: int(self) * int(other)
+	__div__ = lambda self, other: int(self) / int(other)
 	
-	def sort (self): super(RolledDice, self).sort(); return self
+	def sort (self):
+		""" Sort and return self """
+		super(RolledDice, self).sort()
+		return self
 		
 class UnrolledDice (object):
 	"""	A set of *potential* dice rolls, that can be rolled as late as possible """
+	
 	def __init__ (self, n, sides):
 		self.n = n
 		self.sides = sides
 
 	def evaluate (self):
+		"""	Evaluates the UnrolledDice and results a set of RolledDice """
 		return RolledDice(self.sides).roll(self.n)
 		
 	def __repr__ (self):
@@ -74,6 +86,8 @@ class UnrolledDice (object):
 # -------------------------
 
 class Operator (object):
+	"""	The Operator superclass """
+	
 	__metaclass__ = ABCMeta
 	
 	#: The number of terms the operator accepts
@@ -84,41 +98,41 @@ class Operator (object):
 	
 	@abstractmethod
 	def __call__ (self, *args):
-		raise NotImplementedError, self.__class__.__name__ + " has not defined a call method"
-	
-	@property
-	def name (self):
-		return self.__class__.__name__
+		raise NotImplementedError, " has not defined a call method".format(self.__class__.__name__)
 	
 	def require_dice (self, obj, error=None):
+		"""	Raises an error if obj is not a RolledDice instance """
 		error = error or "Cannot call {operator} on {1}, as it is not a RolledDice object "
 		if not isinstance(obj, RolledDice):
 			raise NotImplementedError, error.format(operator=self.__class__.__name__, obj=obj)
 	
 	def __repr__ (self):
-		return '<'+self.name+'>'
+		return '<{}>'.format(self.__class__.__name__)
 
 # -------------------------
 # Generic operators
 # -------------------------
 
 class GenericOperator (Operator):
+	"""	A base for generic operator types """
 	def __call__ (self, *args):
 		return self.function(*args)
 
-def Generic (name, function, grammars, terms=2):
-	return type(name, (GenericOperator,), {
-		'function': staticmethod(function),
-		'grammars': grammars,
-		'terms':	terms,
-	})
+	@classmethod
+	def new (cls, name, function, grammars, terms=2):
+		"""	Creates a type using the given args, inheriting from GenericOperator """
+		return type(name, (cls,), {
+			'function': staticmethod(function),
+			'grammars': grammars,
+			'terms':	terms,
+		})
 
 # -------------------------
 # Unary operators
 # -------------------------
 
-Total = Generic('total', lambda d: int(d), keywords('t', 'total'), terms=1)
-Sort = Generic('sort', lambda d: d.sort(), keywords('s', 'sort'), terms=1)
+Total = GenericOperator.new('total', lambda d: int(d), keywords('t', 'total'), terms=1)
+Sort = GenericOperator.new('sort', lambda d: d.sort(), keywords('s', 'sort'), terms=1)
 
 class Explode (Operator):
 	grammars = keywords('x', 'explode')
@@ -150,10 +164,17 @@ class Explode (Operator):
 # -------------------------
 
 		
-Plus     = Generic('Plus',     lambda x,y: int(x) + int(y), literals('+') + keywords('plus'))
-Minus    = Generic('Minus',    lambda x,y: int(x) - int(y), literals('-') + keywords('minus'))
-Multiply = Generic('Multiply', lambda x,y: int(x) * int(y), literals('*') + keywords('multiply'))
-Divide   = Generic('Divide',   lambda x,y: int(x) / int(y), literals('/') + keywords('divide'))
+Plus = GenericOperator.new('Plus',
+	lambda x, y: int(x) + int(y), literals('+') + keywords('plus'))
+
+Minus = GenericOperator.new('Minus',
+	lambda x, y: int(x) - int(y), literals('-') + keywords('minus'))
+
+Multiply = GenericOperator.new('Multiply',
+	lambda x, y: int(x) * int(y), literals('*') + keywords('multiply'))
+
+Divide = GenericOperator.new('Divide',
+	lambda x, y: int(x) / int(y), literals('/') + keywords('divide'))
 		
 class Drop (Operator):
 	grammars = keywords('v', 'drop')

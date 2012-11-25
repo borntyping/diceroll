@@ -6,7 +6,7 @@ from pyparsing	import *
 
 ParserElement.enablePackrat()
 
-from evaluate	import Expression, single
+from evaluate	import Expression
 from components	import *
 
 # Numbers are evaluated to Number objects
@@ -65,4 +65,4 @@ def roll (expression, **modifiers):
 	"""
 	parsed = dicerollexpression.parseString(expression)
 	result = [expr.evaluate(**modifiers) for expr in parsed]
-	return single(result) if modifiers.get('single', True) else result
+	return Expression.single(result) if modifiers.get('single', True) else result

@@ -10,8 +10,9 @@ http://pypi.python.org/pypi/diceroll
 __version__ = 2.0
 __all__ = ['roll', 'ParseException']
 
-from parser		import roll
-from pyparsing	import ParseException
+import sys
+
+from diceroll.parser import roll, ParseException
 
 def command ():
 	""" Command line entry point """
@@ -34,9 +35,8 @@ def command ():
 		if args.verbose:
 			print "Result:",
 		print result
-	except ParseException as e:
-		import sys
-		print >> sys.stderr, "Parse failed:", e
+	except ParseException as exception:
+		print >> sys.stderr, "Parse failed:", exception
 
 if __name__ == '__main__':
 	command()
