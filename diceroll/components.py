@@ -7,8 +7,14 @@ from random		import randint
 
 from pyparsing	import *
 
-def keyword_literals (*keywords):
-	return [CaselessKeyword(keyword) for keyword in keywords]
+def grammars (cls, iterable):
+	return [cls(g) for g in iterable]
+
+def literals (*g):
+	return grammars(Literal, g)
+	
+def keywords (*g):
+	return grammars(CaselessKeyword, g)
 
 # -------------------------
 # Dice
@@ -35,7 +41,11 @@ class RolledDice (list):
 		for i in xrange(n):
 			self.append(self.rand())
 		return self
-			
+	
+	def __str__ (self):
+		"""	Strip the [] from the results """
+		return super(RolledDice, self).__repr__()[1:-1]
+		
 	def __repr__ (self):
 		return "Dice<{}>{}".format(self.sides, tuple(self))
 	
@@ -44,6 +54,8 @@ class RolledDice (list):
 	def __sub__ (self, other):	return int(self) - int(other)
 	def __mul__ (self, other):	return int(self) * int(other)
 	def __div__ (self, other):	return int(self) / int(other)
+	
+	def sort (self): super(RolledDice, self).sort(); return self
 		
 class UnrolledDice (object):
 	"""	A set of *potential* dice rolls, that can be rolled as late as possible """
@@ -51,7 +63,7 @@ class UnrolledDice (object):
 		self.n = n
 		self.sides = sides
 
-	def evaluate (self, **modifiers):
+	def evaluate (self):
 		return RolledDice(self.sides).roll(self.n)
 		
 	def __repr__ (self):
@@ -64,10 +76,14 @@ class UnrolledDice (object):
 class Operator (object):
 	__metaclass__ = ABCMeta
 	
+	#: The number of terms the operator accepts
+	terms = 2
+	
+	#: The grammars to include in the parser
 	grammars = ()
 	
 	@abstractmethod
-	def __call__ (self, args):
+	def __call__ (self, *args):
 		raise NotImplementedError, self.__class__.__name__ + " has not defined a call method"
 	
 	@property
@@ -90,41 +106,31 @@ class GenericOperator (Operator):
 	def __call__ (self, *args):
 		return self.function(*args)
 
-def Generic (name, function, **kwargs):
-	grammars = list()
-	grammars.extend([g for g in kwargs.get('grammars', ())])
-	grammars.extend(keyword_literals(*kwargs.get('keywords', ())))
-	
+def Generic (name, function, grammars, terms=2):
 	return type(name, (GenericOperator,), {
 		'function': staticmethod(function),
 		'grammars': grammars,
-		'terms':	kwargs.get('terms', 2)
+		'terms':	terms,
 	})
 
 # -------------------------
 # Unary operators
 # -------------------------
 
-Total = Generic('total', lambda x: int(x), keywords=['t', 'total'], terms=1)
-
-class Sort (Operator):
-	terms, grammars = 1, keyword_literals('s', 'sort')
-	
-	def __call__ (self, x):
-		x.sort()
-		return x
+Total = Generic('total', lambda d: int(d), keywords('t', 'total'), terms=1)
+Sort = Generic('sort', lambda d: d.sort(), keywords('s', 'sort'), terms=1)
 
 class Explode (Operator):
-	terms, grammars = 1, keyword_literals('x', 'explode')
+	grammars = keywords('x', 'explode')
+	terms = 1
 	
 	def __init__ (self, tokens):
-		self.n = False
 		self.recursive = True
 		self.limit = 10
 	
 	def __call__ (self, dice):
 		self.require_dice(dice, "Cannot explode {obj}")
-		return self.recursive_explode(dice, self.n or dice.sides)
+		return self.recursive_explode(dice, dice.sides)
 	
 	def recursive_explode (self, dice, n):
 		"""	Roll an extra die for each die >= ``n`` """
@@ -144,20 +150,20 @@ class Explode (Operator):
 # -------------------------
 
 		
-Plus      = Generic('Plus',     lambda x,y: int(x) + int(y), grammars=[Literal('+')])
-Minus     = Generic('Minus',    lambda x,y: int(x) - int(y), grammars=[Literal('-')])
-Multiply  = Generic('Multiply', lambda x,y: int(x) * int(y), grammars=[Literal('*')])
-Divide    = Generic('Divide',   lambda x,y: int(x) / int(y), grammars=[Literal('/')])
+Plus     = Generic('Plus',     lambda x,y: int(x) + int(y), literals('+') + keywords('plus'))
+Minus    = Generic('Minus',    lambda x,y: int(x) - int(y), literals('-') + keywords('minus'))
+Multiply = Generic('Multiply', lambda x,y: int(x) * int(y), literals('*') + keywords('multiply'))
+Divide   = Generic('Divide',   lambda x,y: int(x) / int(y), literals('/') + keywords('divide'))
 		
 class Drop (Operator):
-	terms, grammars = 2, keyword_literals('v', 'drop')
+	grammars = keywords('v', 'drop')
 	
 	def __call__ (self, dice, n):
 		self.require_dice(dice, "Cannot drop dice from {obj}")
 		return RolledDice(dice, sorted(dice)[n:])
 
 class Keep (Operator):
-	terms, grammars = 2, [Literal('^')] + keyword_literals('drop')
+	grammars = literals('^') + keywords('keep')
 	
 	def __call__ (self, dice, n):
 		"""	Keeps the ``n`` highest dice from ``d`` """
@@ -165,7 +171,7 @@ class Keep (Operator):
 		return RolledDice(dice, sorted(dice)[::-1][:n])
 
 class Reroll (Operator):
-	terms, grammars = 2, keyword_literals('r', 'reroll')
+	grammars = keywords('r', 'reroll')
 	
 	def __call__ (self, dice, limit):
 		"""	Reroll all dice below ``limit`` """
@@ -173,7 +179,7 @@ class Reroll (Operator):
 		return RolledDice(dice, [(dice.rand() if d <= limit else d) for d in dice])
 
 class RecursiveReroll (Reroll):
-	terms, grammars = 2, keyword_literals('rr', 'rreroll')
+	grammars = keywords('rr', 'rreroll')
 	
 	def __call__ (self, dice, limit):
 		"""	Recursively reroll dice """
@@ -183,7 +189,6 @@ class RecursiveReroll (Reroll):
 		return dice
 
 class Success (Operator):
-	terms = 2
 	grammars = [
 		CaselessLiteral('success').suppress()
 		+ Optional(White())
@@ -191,14 +196,15 @@ class Success (Operator):
 	]
 	
 	def __init__ (self, tokens):
-		tokens = list(tokens)
-		self.canceling = ('C' in tokens)
-		self.bonuses = ('B' in tokens)
+		self.canceling = ('C' in list(tokens))
+		self.bonuses = ('B' in list(tokens))
 		
 	def __call__ (self, dice, n):
 		result = len(filter(lambda d: d >= int(n), dice))
-		if self.canceling: result -= len(filter(lambda d: d == 1, dice))
-		if self.bonuses:   result += len(filter(lambda d: d >= dice.sides, dice))
+		if self.canceling:
+			result -= len(filter(lambda d: d == 1, dice))
+		if self.bonuses:
+			result += len(filter(lambda d: d >= dice.sides, dice))
 		return result
 
 	def __repr__ (self):
@@ -209,7 +215,7 @@ class Success (Operator):
 		)
 
 class Diffrence (Operator):
-	terms, grammars = 2, [Literal('~'), CaselessKeyword('diff')]
+	grammars = literals('~') + keywords('diff')
 	
 	def __call__ (self, x, y):
 		return int(x) - int(y)

@@ -16,6 +16,7 @@ setup(
 	
 	packages         = find_packages(),
 	install_requires = ['pyparsing>=1.5.6'],
+	tests_require    = ['argumented'],
 	
 	entry_points = {'console_scripts': [
 		'roll  = diceroll:command',

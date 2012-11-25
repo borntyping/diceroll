@@ -1,12 +1,12 @@
 """	The expression parser """
 
-__all__ = ['number', 'dice', 'expr', 'sub_expr', 'unary_operators', 'binary_operators', 'comment', 'dicerollexpression', 'roll']
+__all__ = ['number', 'dice', 'expr', 'sub_expr', 'unary_operators', 'binary_operators', 'expressions', 'comment', 'dicerollexpression', 'roll']
 
 from pyparsing	import *
 
 ParserElement.enablePackrat()
 
-from evaluate	import Expression
+from evaluate	import Expression, single
 from components	import *
 
 # Numbers are evaluated to Number objects
@@ -27,7 +27,7 @@ lparen = Literal('(').suppress()
 rparen = Literal(')').suppress()
 sub_expr = lparen + expr + rparen
 
-# Unary operators must be placed after an atom
+# All current unary operators only operate on dice and subexpressions that return dice
 unary_operators = list()
 for operator in [Explode, Sort, Total]:
 	for grammar in operator.grammars:
@@ -35,7 +35,7 @@ for operator in [Explode, Sort, Total]:
 unary_operators = Or(unary_operators)
 
 # An atom is the smallest part of an expression
-atom = ( dice | number | sub_expr ) + ZeroOrMore(unary_operators)
+atom = ( dice | sub_expr ) + ZeroOrMore(unary_operators) | number
 atom.setName('dice, number or expression')
 
 # Binary operators must both follow and precede an atom
@@ -50,8 +50,19 @@ for operator in [Drop, Keep, Reroll, RecursiveReroll, Success, Plus, Minus, Mult
 binary_operators = Or(binary_operators)
 
 expr << atom + ZeroOrMore(binary_operators + atom)
+expressions = expr + ZeroOrMore(Literal(',').suppress() + expr)
 comment = dblSlashComment.suppress().setName("comment")
-dicerollexpression = StringStart() + expr + Optional(comment) + StringEnd()
+dicerollexpression = StringStart() + expressions + Optional(comment) + StringEnd()
 
 def roll (expression, **modifiers):
-	return dicerollexpression.parseString(expression)[0].evaluate(**modifiers)
+	"""
+	Parse and evaluate the given expression
+	
+	All keywords are passed on to the calls to :py:func:``~Expression.evaluate`` and :py:func:``~components.UnrolledDice.roll``
+	
+	:Keywords:
+		- `single` (bool): Apply :py:func:`single` to the resulting list. Defaults to True.
+	"""
+	parsed = dicerollexpression.parseString(expression)
+	result = [expr.evaluate(**modifiers) for expr in parsed]
+	return single(result) if modifiers.get('single', True) else result
