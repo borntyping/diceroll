@@ -1,21 +1,10 @@
-"""	The evaluate function, and print functions for the functions it performs """
+"""	The Expression class """
 
-from traceback	import print_exc
-
-from components	import UnrolledDice, Operator
-
-def single (list):
-	"""
-	Returns a single item from a list if possible
-	
-	>>> single([1])
-	1
-	>>> single([1, 2, 3])
-	[1, 2, 3]
-	"""
-	return list[0] if len(list) == 1 else list
+from diceroll.components import UnrolledDice, Operator
 
 class Expression (object):
+	"""	A diceroll expression object, and the evaluator for it """
+	
 	def __init__ (self, tokens):
 		self.depth = 0
 		self.tokens = list(tokens)
@@ -24,11 +13,24 @@ class Expression (object):
 		return repr(self.tokens)
 		
 	def log (self, message, depth=0, **values):
+		"""	Print a message at a set depth """
 		print ("{depth}"+message).format(
 			depth   = '  ' * (self.depth + depth),
 			tokens  = self.tokens,
 			**values
 		)
+	
+	@staticmethod
+	def single (iterable):
+		"""
+		Returns a single item from a iterable if possible
+		
+		>>> single([1])
+		1
+		>>> single([1, 2, 3])
+		[1, 2, 3]
+		"""
+		return iterable[0] if len(iterable) == 1 else iterable
 
 	def evaluate (self, **modifiers):
 		"""
@@ -67,8 +69,8 @@ class Expression (object):
 				# The new token list is the token list with the argument tokens
 				# and the operator replaced with the operators result
 				self.tokens = self.tokens[:l-1] + [result] + self.tokens[l+op.terms:]
-				self.log("Called {operator}: {result}", operator=op.name, result=result)
+				self.log("Called {operator}: {result}", operator=op.__class__.__name__, result=result)
 			else:
 				# The location only needs to move on if no operator was called
 				l += 1
-		return single(self.tokens)
+		return Expression.single(self.tokens)
