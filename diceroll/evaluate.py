@@ -39,7 +39,7 @@ class Expression (object):
 		self.depth = modifiers.get('depth', 1)
 		
 		# If verbose==False, ignore all logging calls
-		if not modifiers.get('verbose', True):
+		if not modifiers.get('verbose', False):
 			self.log = lambda *a, **k: None
 		
 		self.log("Evaluating the expression: {tokens!r}", depth=-1)
