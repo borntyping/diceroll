@@ -3,27 +3,43 @@
 allowing them to be called with multiple argument sets and still appear as
 seperate test cases.
 
-In the following example, `test_with_arguments` would be replaced with two
-functions (`test_with_arguments_0` and `test_with_arguments_1`), each of which
-would called the test with one of the given arguments.
+In the following example, each of the test cases would be replaced with two test
+cases, each of which would call the test case with the given arguments.
 
-`test_greeting` would also be replaced with two functions, each calling one of
-the argument sets given to the decorators. `test_greeting_0` would print "hello
-world", and `test_greeting_1` would print "goodbye world"
+`@argument(*args, **kwargs)`
 
-The original test cases are removed from the class.
+Will call the test case with the given argument set
+
+`@argument_list(*args)`
+
+Will call the test case with each item in `*args`
+
+`@argument_tuples(*args)`
+
+Each item in `*args` must be a tuple containing an interable and a mapping,
+which will then be used as an argument set for the test case (i.e. `([], {})`)
+
+The decorators can be used multiple times, or used together - each of them 
+takes the arguments they are given and passes it to `pack_arguments(func, *args,
+**kwargs)`, which adds a wrapped function to `func.__argumented__`.
 
 	@unpack_arguments
 	class TestArgumentedCases (unittest.TestCase):
-	
-		@arguments(1, 2)
-		def test_with_arguments (self, n):
-			self.assertIsInstance(n, int)
 			
 		@argument("hello", thing="world")
 		@argument("goodbye", thing="world")
 		def test_greeting (self, greeting, thing):
-			print "{} {}".format(greeting, thing)
+			self.assertIn(greeting, ["hello", "goodbye"])
+			self.assertEquals(thing, "world")
+		
+		@argument_list(1, 2)
+		def test_with_arguments (self, n):
+			self.assertIsInstance(n, int)
+		
+		@argument_tuples( ([1, 2], {'a': 'A'}), ([1, 2], {'a': 'B'}) )
+		def test_with_arguments (self, *args, *kwargs):
+			self.assertEquals(args, (1, 2))
+			self.assertIn(kwargs['a'], ['A', 'B'])
 			
 Originally inspired by [github.com/santtu/ddt](http://github.com/santtu/ddt),
 though it ended up working somewhat diffrently.
@@ -72,6 +88,10 @@ def argument (*args, **kwargs):
 	"""	Calls `pack_arguments` with the given arguments """
 	return lambda f: pack_arguments(f, *args, **kwargs) and f
 	
-def arguments (*args):
+def argument_list (*args):
 	"""	Calls `pack_arguments` with each given argument """
 	return lambda f: [pack_arguments(f, a) for a in args] and f
+
+def argument_tuples (*args):
+	"""	Calls `pack_arguments` with each given argument list """
+	return lambda f: [pack_arguments(f, *a, **b) for (a, b) in args] and f
