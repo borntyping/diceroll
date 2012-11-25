@@ -29,16 +29,11 @@ class TestDice (unittest.TestCase):
 	
 	def test_missing_s (self):
 		self.assertRaises(ParseException, roll, "1d")
-		
-subatoms = ('6d6', '(6d6)')
-atoms = lambda *ops: ((x, {}) for x in product(ops, subatoms))
+
+atoms = lambda *ops: ((x, {}) for x in product(ops, ['6d6', '(6d6)']))
 
 @unpack_arguments
-class TestUnaryOperators (unittest.TestCase):
-	@argument_list(*subatoms)
-	def test_subatoms (self, subatom):
-		self.assertIsInstance(roll(subatom), RolledDice)
-	
+class TestUnaryOperators (unittest.TestCase):	
 	@argument_tuples(*atoms("x", "explode"))
 	def test_explode (self, op, subatom):
 		self.assertIsInstance(roll(subatom + op), RolledDice)
@@ -81,18 +76,33 @@ class TestBinaryOperators (unittest.TestCase):
 		self.assertIsInstance(result, RolledDice)
 		self.assertFalse(filter(lambda x: x <= 2, result))
 		self.assertEquals(len(result), 6)
-	
+
+class TestSuccessOperator (unittest.TestCase):
+	@classmethod
+	def setUpClass (cls):
+		cls.basic_result = roll("6d6 success 4")
+		
 	def test_success (self):
-		self.assertTrue(0 < roll("6d6 success 4") <= 6)
+		self.assertGreaterEqual(self.basic_result, 0)
+		self.assertLessEqual(self.basic_result, 6)
 	
 	def test_success_type (self):
-		self.assertIsInstance(roll("6d6 success 4"), int)
+		self.assertIsInstance(self.basic_result, int)
 		
 	def test_success_cancel (self):
-		self.assertTrue(-6 < roll("6d6 successC 4") <= 6)
+		result = roll("6d6 successC 4")
+		self.assertGreaterEqual(result, -6)
+		self.assertLessEqual(result, 6)
 	
 	def test_success_bonus (self):
-		self.assertTrue(0 < roll("6d6 successB 4") <= 12)
+		result = roll("6d6 successB 4")
+		self.assertGreaterEqual(result, 0)
+		self.assertLessEqual(result, 12)
+
+	def test_success_both (self):
+		result = roll("6d6 successCB 4")
+		self.assertGreaterEqual(result, -6)
+		self.assertLessEqual(result, 12)
 
 if __name__ == '__main__':
     unittest.main()
