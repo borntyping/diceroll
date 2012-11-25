@@ -7,7 +7,7 @@ https://github.com/borntyping/diceroll
 http://pypi.python.org/pypi/diceroll
 """
 
-__version__ = 2.0
+__version__ = "2.1"
 __all__ = ['roll', 'ParseException']
 
 import sys
