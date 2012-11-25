@@ -7,8 +7,8 @@ https://github.com/borntyping/diceroll
 http://pypi.python.org/pypi/diceroll
 """
 
-__version__ = 1.2
-__all__ = ['roll']
+__version__ = 2.0
+__all__ = ['roll', 'ParseException']
 
 from parser		import roll
 from pyparsing	import ParseException
