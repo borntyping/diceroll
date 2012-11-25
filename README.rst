@@ -24,45 +24,59 @@ Integers are simply expressed as one or more digits (i.e. ``0-9``).
 Subexpressions can be placed in parenthesis ``()``, and are evaluated in full before the main expression is evaluated.
 
 Operators
----------
+^^^^^^^^^
 
-=======================	===============================	================================================================================
+Unary operators
+~~~~~~~~~~~~~~~
 
-**Unary operators** - These operators act on the previous component, and almost always accept only dice.
-----------------------------------------------------------------------------------------------------------------------------------------
+These operators act on the previous component, and almost always accept only dice.
 
-Total			``<D>t``			Returns the sum total of the diceroll (as an integer value).
-			``<D>total``
+Total
+-----
 
-Sort			``<D>s``			Sorts diceroll ``D``.
-			``<D>sort``
+``<D>t``, ``<D> total``: Returns the sum total of the diceroll (as an integer value).
 
-Explode			``<D>x``			Rolls an extra die for every diceroll that hits the maximum.
-			``<D>explode``
+Sort
+----
 
-**Binary Operators** - These operators act on two components (the previous and the next).
-----------------------------------------------------------------------------------------------------------------------------------------
-Arithmetic		``<X>*<Y>``			Performs a basic operation on two components - respectively multiplication, 
-			``<X>/<Y>``			division, addition, subtraction. Dicerolls are converted to integers, using
-			``<X>+<Y>``			the sum total of the rolls
-			``<X>-<Y>``
+``<D>s``, ``<D>sort``: Sorts diceroll ``D``.
 
-Drop			``<X>v<Y>``			Drop the ``Y`` lowest rolls from diceroll ``X``. 
-			``<X>drop<Y>``
+Explode
+-------
 
-Keep			``<X>^<Y>``			Similar to drop, keeps the ``Y`` highest rolls from ``X``.
-			``<X>keep<Y>``
+``<D>x``, ``<D>explode``: Rolls an extra die for every diceroll that hits the maximum.
 
-Reroll			``<D>reroll<N>``		Reroll any dice in ``D`` that are equal to or lower than ``N``.
-			``<D>r<N>``
+Binary Operators
+~~~~~~~~~~~~~~~~
+
+These operators act on two components (the previous and the next).
+
+Arithmetic
+----------
+
+``<X>*<Y>``, ``<X>/<Y>``, ``<X>+<Y>``, ``<X>-<Y>``
+
+Performs a basic operation on two components - respectively multiplication, division, addition, subtraction. Dicerolls are converted to integers, using the sum total of the rolls.
+
+Drop and Keep
+-------------
+
+``<X>v<Y>``, ``<X>drop<Y>``: Drop the ``Y`` lowest rolls from diceroll ``X``.
+``<X>^<Y>``, ``<X>keep<Y>``: Similar to drop, keeps the ``Y`` highest rolls from ``X``.
+
+Reroll and Recursive Reroll
+---------------------------
+
+``<D>r<N>``, ``<D>reroll<N>``: Reroll any dice in ``D`` that are equal to or lower than ``N``.
 			
-Recursive Reroll	``<D>rreroll<N>``		The same as ``reroll``, but does so recursively
-			``<D>rr<N>``			- any rerolled dice equal to or lower than ``N`` are also rerolled
+``<D>rr<N>``, ``<D>rreroll<N>``: The same as ``reroll``, but does so recursively - any rerolled dice equal to or lower than ``N`` are also rerolled
 
-Diff			``<X>~<Y>``			Returns the difference between ``X`` and ``Y``.
-			``<X>diff<Y>``
+Diff
+----
 
-Success			``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that land equal to or higher than ``N``.
-							``C`` and ``B`` are optional flags: ``C`` removes a success every time a die
-							hits the minimum, ``B`` adds a success every time a die lands on the maximum.
-=======================	===============================	================================================================================
+``<X>~<Y>``, ``<X>diff<Y>``: Returns the difference between ``X`` and ``Y``.
+			
+Success
+-------
+
+``<D> success [C][B] <N>``	Returns the count of dice in ``D`` that land equal to or higher than ``N``. ``C`` and ``B`` are optional flags: ``C`` removes a success every time a die hits the minimum, ``B`` adds a success every time a die lands on the maximum.
