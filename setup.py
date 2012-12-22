@@ -5,7 +5,7 @@ from diceroll import __version__
 
 setup(
 	name             = 'diceroll',
-	version          = __version__,
+	version          = '2.2pre',
 
 	author           = 'Sam Clements',
 	author_email     = 'sam@borntyping.co.uk',
