@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name             = 'diceroll',
-	version          = '2.2pre',
+	version          = '2.3',
 
 	author           = 'Sam Clements',
 	author_email     = 'sam@borntyping.co.uk',
