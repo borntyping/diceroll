@@ -23,7 +23,7 @@ def command ():
         description="Return the results of a dice expression")
 	
 	parser.add_argument('--version', action='version',
-		version='diceroll v' % __version__)
+		version='diceroll v%s' % __version__)
 	
 	parser.add_argument('-v', '--verbose', action='store_true',
 		help='log the evaluation')
