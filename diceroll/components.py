@@ -54,7 +54,7 @@ class RolledDice (list):
 		return super(RolledDice, self).__repr__()[1:-1]
 		
 	def __repr__ (self):
-		return "Dice<{}>{}".format(self.sides, tuple(self))
+		return "Dice<{0}>{1}".format(self.sides, tuple(self))
 	
 	__int__ = lambda self: sum(self)
 	__add__ = lambda self, other: int(self) + int(other)
@@ -107,7 +107,7 @@ class Operator (object):
 			raise NotImplementedError, error.format(operator=self.__class__.__name__, obj=obj)
 	
 	def __repr__ (self):
-		return '<{}>'.format(self.__class__.__name__)
+		return '<{0}>'.format(self.__class__.__name__)
 
 # -------------------------
 # Generic operators
@@ -229,7 +229,7 @@ class Success (Operator):
 		return result
 
 	def __repr__ (self):
-		return '<{} ({}{})>'.format(
+		return '<{0} ({1}{2})>'.format(
 			self.__class__.__name__,
 			'C' if self.canceling else '-',
 			'B' if self.bonuses else '-',

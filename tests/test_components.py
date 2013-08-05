@@ -72,7 +72,7 @@ class TestBinaryOperators (unittest.TestCase):
 	@argument_list('rr', 'rreroll')
 	def test_keep (self, op):
 		""" Assert that there are no rolls below `limit` """
-		result = roll("6d3 {} {}".format(op, 2))
+		result = roll("6d3 {0} {1}".format(op, 2))
 		self.assertIsInstance(result, RolledDice)
 		self.assertFalse(filter(lambda x: x <= 2, result))
 		self.assertEquals(len(result), 6)
