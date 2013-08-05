@@ -6,10 +6,6 @@ diceroll
     :target: https://crate.io/packages/diceroll/
     :alt: Latest PyPI version
 
-.. image:: https://pypip.in/d/diceroll/badge.png
-    :target: https://crate.io/packages/diceroll/
-    :alt: Number of PyPI downloads
-
 ``diceroll`` is a simple command line dice roller.
 
 It can be invoked through the ``roll`` command once installed.
