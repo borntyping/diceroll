@@ -1,11 +1,10 @@
 #!/usr/bin/python
 
 from setuptools import setup, find_packages
-from diceroll import __version__
 
 setup(
 	name             = 'diceroll',
-	version          = __version__,
+	version          = '2.2pre',
 
 	author           = 'Sam Clements',
 	author_email     = 'sam@borntyping.co.uk',
@@ -18,7 +17,21 @@ setup(
 	install_requires = ['pyparsing>=1.5.6'],
 	tests_require    = ['argumented'],
 	
-	entry_points = {'console_scripts': [
-		'roll  = diceroll:command',
-	]},
+	entry_points     = {
+        'console_scripts': [
+            'roll  = diceroll:command',
+        ]
+    },
+
+	classifiers     = [
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Topic :: Terminals',
+        'Topic :: Utilities',
+    ],
 )

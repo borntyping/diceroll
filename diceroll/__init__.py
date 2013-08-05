@@ -7,20 +7,23 @@ https://github.com/borntyping/diceroll
 http://pypi.python.org/pypi/diceroll
 """
 
-__version__ = "2.1"
-__all__ = ['roll', 'ParseException']
-
 import sys
 
+import pkg_resources
+
 from diceroll.parser import roll, ParseException
+
+__all__ = ['roll', 'ParseException']
+__version__ = pkg_resources.require('diceroll')[0].version
 
 def command ():
 	""" Command line entry point """
 	import sys, argparse
-	parser = argparse.ArgumentParser(description="Return the results of a dice expression")
+	parser = argparse.ArgumentParser(
+        description="Return the results of a dice expression")
 	
 	parser.add_argument('--version', action='version',
-		version='bones v%s' % __version__)
+		version='diceroll v' % __version__)
 	
 	parser.add_argument('-v', '--verbose', action='store_true',
 		help='log the evaluation')
