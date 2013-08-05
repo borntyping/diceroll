@@ -49,7 +49,7 @@ for operator in [Drop, Keep, Reroll, RecursiveReroll, Success, Plus, Minus, Mult
 		binary_operators.append(grammar)
 binary_operators = Or(binary_operators)
 
-expr << atom + ZeroOrMore(binary_operators + atom)
+expr <<= atom + ZeroOrMore(binary_operators + atom)
 expressions = expr + ZeroOrMore(Literal(',').suppress() + expr)
 comment = dblSlashComment.suppress().setName("comment")
 dicerollexpression = StringStart() + expressions + Optional(comment) + StringEnd()
