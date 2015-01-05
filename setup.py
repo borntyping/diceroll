@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
 	name             = 'diceroll',
-	version          = '2.4',
+	version          = '2.5',
 
 	author           = 'Sam Clements',
 	author_email     = 'sam@borntyping.co.uk',
@@ -12,6 +12,7 @@ setup(
 	
 	description      = 'A command line dice roller',
 	long_description = open('README.rst').read(),
+    license          = 'MIT',
 	
 	packages         = find_packages(),
 	install_requires = ['pyparsing>=1.5.6'],
